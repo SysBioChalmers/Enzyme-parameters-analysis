@@ -1,7 +1,7 @@
 ---
 title: "BRENDA kinetic data analysis"
 author: "Ivan Domenzain"
-date: "7/1/2019"
+date: "7/15/2019"
 output: html_document
 ---
 
@@ -104,6 +104,13 @@ vennP        <- outVenn[[1]]
 From here onwards, the term dataset will refer to the extended dataset obtained by merging Kcat values with those obtained from the specific activities dataset.
 
 ### 2.2 Get enzymes information (pathways, genes) from KEGG ftp
+
+In this study, kinetic parameters distributions are going to be analysed for different enzyme groups, based on enzyme classes, host organism's taxonomy and metabolic context. For the latter, the KEGG pathways classification is used for identifying those enzyme entries in the dataset that have been annotated as part of the following groups:
+
+- Carbohydrates and Energy Metabolism (CEM)
+- Amino acids and Lipids Metabolism (ALM)
+- Intermediate and Secondary Metabolism (ISM)
+- Others
 ```{r processKEGG_enzymes, echo=FALSE}
 ```
 
@@ -127,11 +134,9 @@ vennP        <- outVenn[[1]]
 #grid.arrange(vennP, ncol = 1)
 ```  
 
-In this study, kinetic parameters distributions are going to be analysed for different enzyme groups, based on enzyme classes, host organism's taxonomy and metabolic context. For the latter, the KEGG pathways classification is used for identifying those enzyme entries in the dataset that have been annotated as part of the following groups:
+The KEGG database provides information that links each EC number entry to all of the pathways in which it might participate. This allows to add a metabolic subgroup to each of the entries in the extended dataset used in this study. Therefore, 3,118 unique EC numbers in the dataset can be classified by metabolic context groups (metGroups). 
 
-- Carbohydrates and Energy Metabolism (CEM)
-- Amino acids and Lipids Metabolism (ALM)
-- Intermediate and Secondary Metabolism (ISM)
+**Note:**The EC numbers not present in KEGG are annotated as part of the group 'Others' for this study.
 ```{r classify_pathways, echo=FALSE}
 ```
 
@@ -147,7 +152,6 @@ The classified pathways are:
 kable(pathGroups, caption= 'KEGG pathways classification used in this study', format = 'markdown')
 ```
 
-The KEGG database provides information that links each EC number entry to all of the pathways in which it might participate. This allows to add a metabolic subgroup to each of the entries in the extended dataset used in this study.
 ```{r add_MetGroup, echo=FALSE, warning=FALSE}
 ```
 
@@ -193,9 +197,10 @@ The dataset also presents heterogeneity when it comes to the number of reported 
 ```
 
 ```{r pie_EC_numbers, fig.align = "center", fig.cap = "\\label{fig:pie_EC_numbers}Dataset compisition by enzyme classes", echo=FALSE, warning=FALSE}
-column <- which(colnames(dataset)=='enz_Family')
-colors <- c('red','black','blue','orange','dark green','brown')
-getPieChart(dataset,column,8,colors)
+column  <- which(colnames(dataset)=='enz_Family')
+colors  <- c('red','black','blue','orange','dark green','brown')
+piePlot <- getPieChart(dataset,column,8,colors)
+plot(piePlot)
 ```  
 
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
@@ -217,7 +222,7 @@ kable(df, caption= 'Average number of entries per enzyme class for the different
 
 ### 3.1.2 Data composition per organism
 
-The different organisms have been grouped into five different "Kingdoms" according to the KEGG taxonomy information:
+The different organisms have been grouped into five different **"Kingdoms"** according to the KEGG taxonomy information:
 
 - Eukaryotes//Animals
 - Eukaryotes//Plants
@@ -235,15 +240,18 @@ org_sortedList  <- orgsData[[1]]
 
 Representation of the different organism Kingdoms in the analysed dataset
 ```{r pie_org_kingdoms, fig.align = "center", fig.cap = "\\label{fig:pie_org_kingdoms}Dataset compisition by organisms Kingdom", echo=FALSE}
-column <- which(colnames(org_sortedList)=='Kingdom')
-colors <- c('blue','purple','red','orange','green','brown','grey')
-getPieChart(org_sortedList,column,8,colors)
+column  <- which(colnames(org_sortedList)=='Kingdom')
+colors  <- c('blue','purple','red','orange','green','brown','grey')
+piePlot <- getPieChart(org_sortedList,column,8,colors)
+plot(piePlot)
 ```  
 
 The top ten represented organisms in the dataset are:
 ```{r, echo=FALSE, warning=FALSE}
 kable(org_sortedList[1:10,], caption= 'Top10 organisms by number of reported Kcat values', format = 'markdown')
 ```
+
+As it has been shown, the studied dataset is biased towards certain well-studied organisms, letting most of the included organisms with a very poor representation in the dataset Kcat distributions.
 
 ### 3.1.3 Data composition per metabolic groups
 
@@ -257,12 +265,28 @@ lab_metG      <- output[[2]]
 average       <- output[[3]]
 EC_metG       <- output[[4]]
 colorValues  <- c('dark green','yellow','red','grey')
-#vectorList   <- list(EC_metG[[1]],EC_metG[[2]],EC_metG[[3]])
 intLabSize   <- rep(0.4,15)
 outVenn      <- plotVennDiagram(EC_metG,metGroups,colorValues,intLabSize,TRUE)
 ```
 
+```{r get_orgs_metGroups_table, echo=FALSE}
+```
+
+```{r barPlot_counts, echo=FALSE}
+```
+
+Unique EC numbers per metabolic groups for the different organism Kingdoms.
+```{r bar_orgs_metGroups, fig.align = "center"}
+labOrgs     <- c('animals','plants','protists','fungi','bacteria','archaea')
+countsTable <- get_orgs_metGroups_table(dataset,labOrgs,metGroups)
+barPlot_counts(countsTable,'# of values','Organism Kingdoms',8,colorValues)
+```
+
+The dataset is not just heterogeneous regarding its composition by organism kingdoms, but also within each of these kingdoms, different metabolic groups of enzymes have been studied in a diverse way, showing a majority of reported values for CEM and ALM enzyme classes for most of the cases.
+
 ## 3.2 Data dispersion
+
+It is said that evolution  has shaped kinetic parameters in a very specific way, differentiating catalytic activities by metabolic context, phylogenetic origin and substrate specificity. If such specialization exists for a big dataset as this one, then a wide spanning of reported values can be expected.
 
 Kcats dispersion per EC number
 ```{r getBarPlot, echo=FALSE}
@@ -273,8 +297,14 @@ xLabel   <- 'Kcats dispersion (orders of magnitude)'
 yLabel   <- 'Number of enzyme classes'
 BinWidth <- 1
 getBarPlot(spanning,BinWidth,xLabel,yLabel,6)
-```  
+``` 
 
+The previous histogram shows how most of the studied enzyme classes present a very narrow spanning of their reported Kcat values, however few enzyme classes (EC numbers) with a surprisingly wide spanning of catalytic activities, (**11 orders of magnitude!**) can also be found in the dataset.
+
+However, it is also important to analyze how large is the variance of a given distribution related to its characteristic values. For this, a normalized dispersion is metric, which here will be called as "spreading" and is defined as: **$spreading = log_{10}(Median) / [log_{10}(Max)-log_{10}(Min)]$**. 
+
+This metric allows to explore how wide or narrow a distribution is compared to its median value. A value lower than 1 means that the distribution spanning is higher than its median value (in terms of orders of magnitude).
+ 
 Normalized Kcats dispersion per EC# (orders of magnitude)
 ```{r KcatSpreadCumDist, fig.height = 1.5, fig.width = 2, fig.align = "center", fig.cap = "\\label{fig:KcatSpreadCumDist}Kcats spreading per EC number.", echo=FALSE, warning=FALSE}
 xLabel     <- 'Kcats spreading per EC number'
@@ -283,6 +313,8 @@ xLimit     <- 3
 xIntercept <- 1
 getCumulativeDist(spreading,xLabel,yLabel,xLimit,6,xIntercept)
 ```  
+
+This cumulative distribution shows that around 20% of the enzyme classes show very wide distributions of Kcat values in which a median or mean value cannot be considered as representative of the distribution due to its large spanning.
 
 ## 3.3 Kcats distributions
 
@@ -347,7 +379,7 @@ labelStrs     <- output[[2]]
 ```{r Dist_top1EC_WC2, fig.align = "center", fig.cap = "\\label{fig:Dist_top1EC_WC2}Cumulative distributions for Kcat values for different enzyme groups in the most represented enzyme subfamily (2 wild-cards)", echo=FALSE, warning=FALSE}
 df     <- DistList_to_DataFrame (list_EC_class,classesWC1)
 colors <- c('blue','green','yellow','red','purple','grey')
-multipleDensityPlot(df,xLabel,'Frequency',10,x_Limits,TRUE,colors) 
+multipleDensityPlot(df,xLabel,'Frequency',10,x_Limits,TRUE,labelStrs,colors) 
 ```
 
 ```{r pValtop1EC_WC2, echo=FALSE, warning=FALSE}
@@ -363,10 +395,10 @@ output     <- get_WC1_distributions(df_WC1,df_WC2,Ndists,rank)
 data_WC2   <- output[[1]]
 classesWC2 <- output[[2]]
 #Get distributions of values and strings for plotting
-column     <- which(colnames(dataset)=='ECnumber')
-output     <- getDistributionsList(data_WC2,classesWC2,column)
+column        <- which(colnames(dataset)=='ECnumber')
+output        <- getDistributionsList(data_WC2,classesWC2,column)
 list_EC_class <- output[[1]]
-labelStrs  <- output[[2]]
+labelStrs     <- output[[2]]
 ```
 
 ```{r multipleDensityPlot, echo=FALSE, warning=FALSE}
@@ -374,12 +406,11 @@ labelStrs  <- output[[2]]
 
 ```{r Dist_top2EC_WC2, fig.align = "center", fig.cap = "\\label{fig:Dist_top2EC_WC2}Cumulative distributions for Kcat values for different enzyme groups in the most represented enzyme subfamily (2 wild-cards)", echo=FALSE, warning=FALSE}
 df <- DistList_to_DataFrame (list_EC_class,classesWC2)
-print(classesWC2)
-multipleDensityPlot(df,xLabel,'Frequency',10,x_Limits,TRUE,colors) 
+multipleDensityPlot(df,xLabel,'Frequency',10,x_Limits,TRUE,labelStrs,colors) 
 ```
 
 ```{r pValtop2EC_WC2, echo=FALSE, warning=FALSE}
-df <- statTest_distributions(list_EC_class,classesWC1)
+df <- statTest_distributions(list_EC_class,classesWC2)
 kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
 ```
 
@@ -392,13 +423,12 @@ Cumulative Kcat distributions for the different organism Kingdoms
 ```
 
 ```{r cumDist_orgKingdoms, fig.align = "center", fig.cap = "\\label{fig:cumDist_orgKingdoms}Cumulative distributions for Kcat values per organism kingdoms", echo=FALSE, warning=FALSE}
-labels     <- c(';animals;',';plants;',';protists;',';fungi;',';bacteria;',';archaea;')
 column     <- which(colnames(dataset)=='Organism')
-output     <- getDistributionsList(dataset,labels,column)
+output     <- getDistributionsList(dataset,labOrgs,column)
 list_org   <- output[[1]]
 labelStrs  <- output[[2]]
 labelStrs  <- gsub(';','',labelStrs)
-labels     <- gsub(';','',labels)
+labOrgs    <- gsub(';','',labOrgs)
 
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
@@ -407,7 +437,7 @@ multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Ki
 ```  
 
 ```{r pVal_orgKingdoms_Dists, echo=FALSE, warning=FALSE}
-df <- statTest_distributions(list_org,labels)
+df <- statTest_distributions(list_org,labOrgs)
 kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
 ``` 
 
@@ -423,6 +453,169 @@ df     <- DistList_to_DataFrame (list_metGroup,metGroups)
 xLabel <- 'Kcats [1/s]'
 yLabel <- 'Frequency'
 colors <- c('yellow','green','red','grey')
-multipleDensityPlot(df,xLabel,yLabel,10,x_Limits,TRUE,colors) 
+multipleDensityPlot(df,xLabel,yLabel,10,x_Limits,TRUE,lab_metG,colors) 
 ```
+
+### 3.3.4 Kcats distributions per metabolic pathways groups per organism Kingdoms
+
+#### Animals
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_metGroup_animals, echo=FALSE, warning=FALSE}
+indexes    <- grep(labOrgs[1],dataset[,3])
+df         <- dataset[indexes,]
+metGroups  <- c('CEM','ALM','ISM','Others')
+output     <- getDistributionsList(df,metGroups,7)
+list_V     <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+```
+
+```{r pVal_animals_Dists, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_V,metGroups)
+kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+``` 
+
+#### Plants
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_metGroup_plants, echo=FALSE, warning=FALSE}
+orgCol     <- which(colnames(dataset)=='Organism')
+column     <- which(colnames(dataset)=='metGroups')
+indexes    <- grep('plants',dataset[,orgCol])
+df         <- dataset[indexes,]
+output     <- getDistributionsList(df,metGroups,column)
+list_V     <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+```
+
+```{r pVal_plants_Dists, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_V,metGroups)
+kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+``` 
+
+#### Fungi
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_metGroup_fungi, echo=FALSE, warning=FALSE}
+orgCol     <- which(colnames(dataset)=='Organism')
+column     <- which(colnames(dataset)=='metGroups')
+indexes    <- grep('fungi',dataset[,orgCol])
+df         <- dataset[indexes,]
+output     <- getDistributionsList(df,metGroups,column)
+list_V     <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+```
+
+```{r pVal_fungi_Dists, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_V,metGroups)
+kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+``` 
+
+#### Protists
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_metGroup_protists, echo=FALSE, warning=FALSE}
+orgCol     <- which(colnames(dataset)=='Organism')
+column     <- which(colnames(dataset)=='metGroups')
+indexes    <- grep('protists',dataset[,orgCol])
+df         <- dataset[indexes,]
+output     <- getDistributionsList(df,metGroups,column)
+list_V     <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+```
+
+```{r pVal_protists_Dists, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_V,metGroups)
+kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+``` 
+
+#### Bacteria
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_metGroup_bacteria, echo=FALSE, warning=FALSE}
+orgCol     <- which(colnames(dataset)=='Organism')
+column     <- which(colnames(dataset)=='metGroups')
+indexes    <- grep('bacteria',dataset[,orgCol])
+df         <- dataset[indexes,]
+output     <- getDistributionsList(df,metGroups,column)
+list_V     <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+```
+
+```{r pVal_bacteria_Dists, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_V,metGroups)
+kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+``` 
  
+#### Archaea
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_metGroup_archaea, echo=FALSE, warning=FALSE}
+orgCol     <- which(colnames(dataset)=='Organism')
+column     <- which(colnames(dataset)=='metGroups')
+indexes    <- grep('archaea',dataset[,orgCol])
+df         <- dataset[indexes,]
+output     <- getDistributionsList(df,metGroups,column)
+list_V     <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+```
+
+```{r pVal_archaea_Dists, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_V,metGroups)
+kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+``` 
+  
