@@ -36,6 +36,9 @@ multipleCumDist <- function(vectorList,labelStrs,xLabel,yLabel,x_limits,classes,
   if (length(vectorList)==6){
     df <- data.frame(x = c(V[[1]],V[[2]],V[[3]],V[[4]],V[[5]],V[[6]]),extension = factor(rep(1:6, c(length(V[[1]]),length(V[[2]]),length(V[[3]]),length(V[[4]]),length(V[[5]]),length(V[[6]])))))
   }
+  if (length(vectorList)==4){
+    df <- data.frame(x = c(V[[1]],V[[2]],V[[3]],V[[4]]),extension = factor(rep(1:4, c(length(V[[1]]),length(V[[2]]),length(V[[3]]),length(V[[4]])))))
+  }
   df      <- df[order(df$x), ]
   df$ecdf <- ave(df$x, df$extension, FUN=function(x) seq_along(x)/length(x))
   cdfP    <- ggplot(df, aes(x, ecdf, colour = extension)) + geom_line() + 
@@ -46,10 +49,10 @@ multipleCumDist <- function(vectorList,labelStrs,xLabel,yLabel,x_limits,classes,
 }
 
 ## @knitr getPieChart
-getPieChart <- function(dataset,column,fontSize,colors){
-  nargin <- length(as.list(match.call())) -1
+getPieChart <- function(dataset,column,fontSize,colors,titleStr){
+  classes <- unique(dataset[,column])
+  nargin  <- length(as.list(match.call())) -1
   if (nargin<4){colors <- factor(classes)}
-  classes       <- unique(dataset[,column])
   N_elements    <- c()
   prop <- c()
   for (element in classes){
@@ -68,7 +71,10 @@ getPieChart <- function(dataset,column,fontSize,colors){
        geom_text_repel(aes(y=lab.ypos,label = prop), color = "white",size=fontSize)+
        scale_fill_manual(values = colors) +
        theme_void(base_size = 2*fontSize)+coord_polar('y',start=0) #+xlim(0.5, 2.5) 
-  plot(p)
+  if (nargin>4){
+    p <- p + ggtitle(titleStr) 
+  }
+  return(p)
 }
 
 ## @knitr plotVennDiagram
@@ -170,18 +176,21 @@ plotVennDiagram <- function(elementsList,categories,colorValues,intLabSize,scale
 }
 
 ## @knitr multipleDensityPlot
-multipleDensityPlot <- function(df,xLabel,yLabel,fontSize,x_Limits,medianLine,colors) {
+multipleDensityPlot <- function(df,xLabel,yLabel,fontSize,x_Limits,medianLine,labelStr,colors) {
   #Default parameters if 
   nargin <- length(as.list(match.call())) -1
-  if (nargin<7){
+  if (nargin<8){
     colors <- factor(unique(df$class))
-    if (nargin<6){
-      medianLine <- FALSE
+    if (nargin<7){
+      labelStr <- unique(df$class)
+      if (nargin<6){
+        medianLine <- FALSE
+      }
     }
   }
   # Density plots with semi-transparent fill
   p <- ggplot(df, aes(x=values, fill=class)) + geom_density(alpha=.3) + 
-       scale_fill_manual(values = colors) +
+       scale_fill_manual(values = colors,labels=labelStr) +
        labs(y = yLabel, x=xLabel) + theme_classic(base_size = fontSize)+
        scale_x_log10(limits = c(1E-6,max(df$values)))
   if (medianLine){
@@ -191,5 +200,19 @@ multipleDensityPlot <- function(df,xLabel,yLabel,fontSize,x_Limits,medianLine,co
   }
   plot(p)
 }
+
+
+## @knitr barPlot_counts
+barPlot_counts <- function(dat1,xLabel,yLabel,fontSize,colors){
+  nargin <- length(as.list(match.call())) -1
+  if (nargin<5){
+    colors <- factor(dat1$metGroup)
+  }
+  p <- ggplot(data=dat1, aes(x=Kingdom,y=counts,fill=metGroup)) + geom_bar(stat='identity')+ 
+       scale_fill_manual(values = colors) + theme_bw(base_size = 2*fontSize)
+  plot(p)
+}  
+
+
 
 

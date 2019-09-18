@@ -130,11 +130,11 @@ add_WildCards <- function(dataset,numWC){
 get_WC1_distributions <- function(df_WC1,df_WC2,Ndists,rank){
   #Get the most represented families in the WC2 dataset
   df        <- as.data.frame(sort(table(df_WC2[,1]),decreasing=TRUE)[1:10])
-  topEC_WC2 <- df$Var1
+  topEC_WC2 <- df$Var1[rank]
   #Get  a subset dataset from the the WC1 that matches with the top EC_WC2
-  pos        <- gregexpr('.',topEC_WC2[rank],fixed=TRUE)
-  str        <- substr(topEC_WC2[rank],1,(pos[[1]][2]+1))
-  subset_WC1 <- df_WC1[grep(str,df_WC1[,1]),]
+  pos        <- gregexpr('.',topEC_WC2,fixed=TRUE)
+  str        <- substr(topEC_WC2,1,pos[[1]][2])
+  subset_WC1 <- df_WC1[grep(str,df_WC1[,1],fixed=TRUE),]
   classesWC1 <- unique(subset_WC1[,1])
   classesWC1 <- classesWC1[sample((1:length(classesWC1)),Ndists)]
   #Get distributions of values and strings for plotting
@@ -154,6 +154,8 @@ getDistributionsList <- function(dataset,classes,column){
   for (i in 1:length(classes)){
     class          <- classes[i]
     indexes        <- grep(class,dataset[,column])
+    #indexes        <- gregexpr(class,dataset[,column],fixed=TRUE)
+    #indexes       <- indexes[[1]]
     uniqueEC[[i]]  <- unique(dataset[indexes,1]) 
     #Get the average number of entries per unique classes
     average        <- c(average,floor(length(indexes)/length(uniqueEC[[i]])))
@@ -178,7 +180,7 @@ DistList_to_DataFrame <- function(distList,classes,tags){
     nL     <- length(distList[[i]])
     values <- c(values,as.numeric(distList[[i]]))
     class  <- c(class,rep(classes[i],nL))
-    if (nargin>2) {
+    if (nargin>2){
       tag <- c(tag,rep(tags[i],nL))
     }else{
     }
@@ -192,20 +194,37 @@ DistList_to_DataFrame <- function(distList,classes,tags){
   
 }
 
-## @knitr extract_DFsubset
+## @knitr extract_data_subset
 #Function that takes a dataset and extracts a subset of it 
-extract_DFsubset <- function(dataset,classes,column,getUnique_EC){
+extract_data_subset <- function(dataset,category,column,getUnique_EC){
   nargin <- length(as.list(match.call())) -1
   if (nargin<4){getUnique_EC <- FALSE}
-  indexes  <- grep(class,dataset[,column])
-  subsetDF <- dataset[indexes,]
+  indexes  <- grep(category,dataset[,column],fixed=TRUE)
+  subsetDF <- dataset[indexes,] 
   if (getUnique_EC){
-    output   <- list(subsetDF,uniqueEC)
     uniqueEC <- unique(subsetDF[,1])
-  } else{  output <- subsetDF
-}
+    output   <- list(subsetDF,uniqueEC)
+  } else{output <- subsetDF}
   return(output)
 }
-  
 
- 
+## @knitr get_orgs_metGroups_table
+get_orgs_metGroups_table <- function(df,kingdoms,metGroups){
+  countsTable <- c()
+  counts   <- c()
+  Kingdom  <- c()
+  metGroup <- c()
+  for (class in kingdoms){
+    countVect <- c()
+    indexesClass  <- grep(class,df[,3],fixed=TRUE)
+    for (group in metGroups){
+      indexesGroup  <- grep(group,df[,7],fixed=TRUE)
+      indexes       <- intersect(indexesClass,indexesGroup)
+      counts      <- c(counts,length(indexes))
+      Kingdom     <- c(Kingdom,class)
+      metGroup    <- c(metGroup,group)
+    }
+  }
+  countsTable <- data.frame(counts,Kingdom,metGroup,stringsAsFactors = FALSE)
+  return(countsTable)
+}
