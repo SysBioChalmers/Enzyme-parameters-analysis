@@ -3,7 +3,6 @@
 # Ivan Domenzain
 
 ## @knitr loadKcats
-#setwd('/Users/ivand/Documents/GitHub/Kcat_analysis/code')
 kcats <- read.csv(file = '../data/max_KCAT.txt', sep = '\t', header = FALSE, stringsAsFactors = FALSE)
 
 ## @knitr load_Sp_Act

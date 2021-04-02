@@ -170,28 +170,32 @@ getDistributionsList <- function(dataset,classes,column){
 ## @knitr DistList_to_DataFrame
 #Function that gets a list with distributions of values and transforms it into a dataframe,
 #adding additional information that allow the classification of such values.
-DistList_to_DataFrame <- function(distList,classes,tags){
+DistList_to_DataFrame <- function(distList,classes,colors,tags){
   nargin <- length(as.list(match.call())) -1
   tag    <- c()
   class  <- c()
   values <- c()
-  
+  colours <- c()
   for (i in 1:length(distList)){
     nL     <- length(distList[[i]])
     values <- c(values,as.numeric(distList[[i]]))
     class  <- c(class,rep(classes[i],nL))
     if (nargin>2){
-      tag <- c(tag,rep(tags[i],nL))
-    }else{
+      colours <- c(colours,rep(colors[i],nL))
+      if (nargin>3){
+        tag <- c(tag,rep(tags[i],nL))
+     }
     }
   }
   
   if (nargin>2) {
-    df <- data.frame(tag,class,values,stringsAsFactors = FALSE)
+    df <- data.frame(class,values,colours,stringsAsFactors = TRUE)
+    if (nargin>3) {
+      df <- data.frame(tag,class,values,colours,stringsAsFactors = TRUE)
+    }
   }else {
-    df <- data.frame(class,values,stringsAsFactors = FALSE)
+    df <- data.frame(class,values,stringsAsFactors = TRUE)
   }
-  
 }
 
 ## @knitr extract_data_subset

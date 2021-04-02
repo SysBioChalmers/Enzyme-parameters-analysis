@@ -9,7 +9,7 @@ getBarPlot <- function(dataset,BinWidth,xLabel,yLabel,fontSize) {
   dataset <- as.data.frame(dataset[to.keep,])
   #plot data
   bars    <- ggplot (dataset, aes(x=dataset[,1])) + 
-             geom_histogram(binwidth=BinWidth,color="black", fill="light blue") + 
+             geom_histogram(binwidth=BinWidth,color="black", fill=cividis(1)) + 
              labs(y = yLabel, x=xLabel) + theme_classic(base_size = fontSize)
   plot(bars)
 }  
@@ -21,7 +21,7 @@ getCumulativeDist <- function(dataset,xLabel,yLabel,xLimit,fontSize,xIntercept) 
   to.keep     <- !(is.na(dataset[,1])|dataset==Inf)
   dataset     <- as.data.frame(dataset[to.keep,])
   cdfP        <- ggplot (data=dataset, aes(x= dataset[,1])) + 
-                 stat_ecdf(geom = "step",color = 'blue') + 
+                 stat_ecdf(geom = "step",color = cividis(1)) + 
                  labs(y = yLabel, x=xLabel) +xlim(0,xLimit) +
                  theme_classic(base_size = fontSize)
   if (nargin>5){
@@ -33,17 +33,18 @@ getCumulativeDist <- function(dataset,xLabel,yLabel,xLimit,fontSize,xIntercept) 
 ## @knitr multipleCumDist
 multipleCumDist <- function(vectorList,labelStrs,xLabel,yLabel,x_limits,classes,fontSize){
   V <- vectorList
+  colores <- cividis(length(vectorList))
   if (length(vectorList)==6){
-    df <- data.frame(x = c(V[[1]],V[[2]],V[[3]],V[[4]],V[[5]],V[[6]]),extension = factor(rep(1:6, c(length(V[[1]]),length(V[[2]]),length(V[[3]]),length(V[[4]]),length(V[[5]]),length(V[[6]])))))
+    df <- data.frame(x = c(V[[1]],V[[2]],V[[3]],V[[4]],V[[5]],V[[6]]),extension = (rep(colores, c(length(V[[1]]),length(V[[2]]),length(V[[3]]),length(V[[4]]),length(V[[5]]),length(V[[6]])))))
   }
   if (length(vectorList)==4){
-    df <- data.frame(x = c(V[[1]],V[[2]],V[[3]],V[[4]]),extension = factor(rep(1:4, c(length(V[[1]]),length(V[[2]]),length(V[[3]]),length(V[[4]])))))
+    df <- data.frame(x = c(V[[1]],V[[2]],V[[3]],V[[4]]),extension = (rep(colores, c(length(V[[1]]),length(V[[2]]),length(V[[3]]),length(V[[4]])))))
   }
   df      <- df[order(df$x), ]
   df$ecdf <- ave(df$x, df$extension, FUN=function(x) seq_along(x)/length(x))
   cdfP    <- ggplot(df, aes(x, ecdf, colour = extension)) + geom_line() + 
-             scale_colour_hue(name=classes,labels=labelStrs) + 
-             labs(y = yLabel, x=xLabel) + theme_classic(base_size = fontSize)+
+             scale_colour_manual(name=classes,labels=labelStrs,values=colores) +
+             labs(y = yLabel, x=xLabel) + theme_classic(base_size = 1.75*fontSize)+
              scale_x_log10(limits = x_limits)
   plot(cdfP)
 }
@@ -66,10 +67,12 @@ getPieChart <- function(dataset,column,fontSize,colors,titleStr){
   # Add label position
   df <- df %>%arrange(desc(classes)) %>%mutate(lab.ypos = cumsum(prop) - 0.5*prop)
   #Create plot object
+  colores <- cividis(length(classes))
+  if (length(colores)>6){colores <- rev(colores)}
   p <- ggplot(df, aes(x = '', y = prop, fill = classes)) +
        geom_bar(stat = "identity", color = "white",width=0.2) +
        geom_text_repel(aes(y=lab.ypos,label = prop), color = "white",size=fontSize)+
-       scale_fill_manual(values = colors) +
+       scale_fill_manual(values = colores) +
        theme_void(base_size = 2*fontSize)+coord_polar('y',start=0) #+xlim(0.5, 2.5) 
   if (nargin>4){
     p <- p + ggtitle(titleStr) 
@@ -180,14 +183,15 @@ multipleDensityPlot <- function(df,xLabel,yLabel,fontSize,x_Limits,medianLine,la
   #Default parameters if 
   nargin <- length(as.list(match.call())) -1
   if (nargin<8){
-    colors <- factor(unique(df$class))
+    colors <- cividis(length(unique(df$class)))
     if (nargin<7){
-      labelStr <- unique(df$class)
+      labelStr <- factor(unique(df$class))
       if (nargin<6){
         medianLine <- FALSE
       }
     }
   }
+  medianLine <- FALSE
   # Density plots with semi-transparent fill
   p <- ggplot(df, aes(x=values, fill=class)) + geom_density(alpha=.3) + 
        scale_fill_manual(values = colors,labels=labelStr) +
@@ -196,9 +200,36 @@ multipleDensityPlot <- function(df,xLabel,yLabel,fontSize,x_Limits,medianLine,la
   if (medianLine){
     cdat <- ddply(df, "class", summarise, values.median=median(values))
     p    <- p + geom_vline(data = cdat,
-               aes(xintercept = values.median), na.rm = T,colour = colors, linetype ="longdash", size = .3) 
+               aes(xintercept = values.median), na.rm = T,linetype ="longdash", size = .3) 
   }
   plot(p)
+}
+
+## @knitr multipleDensityPlot2
+multipleDensityPlot2 <- function(df,xLabel,yLabel,fontSize,x_Limits,medianLine,labelStr,colors) {
+  #Default parameters if 
+  nargin <- length(as.list(match.call())) -1
+  if (nargin<8){
+    colors <- cividis(length(unique(df$class)))#factor(unique(df$class))
+    if (nargin<7){
+      labelStr <- factor(unique(df$class))
+      if (nargin<6){
+        medianLine <- FALSE
+      }
+    }
+  }
+  medianLine <- FALSE
+  # Density plots with semi-transparent fill
+  p <- ggplot(df, aes(x=values, fill=class)) + geom_density(alpha=.3) + 
+    scale_fill_manual(values = colors,labels=labelStr) +
+    labs(y = yLabel, x=xLabel) + theme_classic(base_size = fontSize)+
+    scale_x_log10(limits = c(1E-6,max(df$values)))
+  if (medianLine){
+    cdat <- ddply(df, "class", summarise, values.median=median(values))
+    p    <- p + geom_vline(data = cdat,
+                           aes(xintercept = values.median), na.rm = T,linetype ="longdash", size = .3) 
+  }
+  return(p)
 }
 
 
