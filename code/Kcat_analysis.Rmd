@@ -1,8 +1,19 @@
 ---
 title: "BRENDA kinetic data analysis"
 author: "Ivan Domenzain"
-date: "7/15/2019"
-output: html_document
+header-includes:
+- \usepackage{float}
+- \renewcommand{\thefigure}{S1.\arabic{figure}}
+- \renewcommand{\thetable}{S1.\arabic{table}}
+- \floatplacement{figure}{H}
+- \floatplacement{table}{H}
+date: "March 2021"
+output:
+  pdf_document:
+    fig_caption: yes        
+    number_sections: false 
+    highlight: tango
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
@@ -15,7 +26,7 @@ knitr::opts_chunk$set(echo = TRUE, dev = "png", dpi = 600)
 \pagenumbering{arabic}
 
 # Summary
-This is a global statistical study of turnover numbers (Kcat parameters) for enzymatic reactions reported in the BRENDA database.
+This is a global statistical study of turnover numbers ($k_{cat}$ parameters) for enzymatic reactions reported in the BRENDA database.
 <br>
 
 # 1. Loading data, scripts and packages
@@ -26,11 +37,13 @@ library(tidyr)
 library(dplyr)
 library(plyr)
 library(knitr)
+library(magick)
 library(gridExtra)
 library(VennDiagram)
 library(kableExtra)
 library(ggplot2)
 library(ggrepel)
+library(viridis)
 ```
 ### 1.2 Loading R scripts for this study 
 ```{r warning = FALSE, message = FALSE}
@@ -41,11 +54,11 @@ read_chunk('plotData.R')
 ```
 ### 1.3 Loading enzyme data from BRENDA database
 
-All available Kcat number, specific activities and molecular weights of enzymes have been retrieved from the BRENDA database, using the provided SOAP methods for python in the [BRENDA website](https://www.brenda-enzymes.org/soap.php). Kcat numbers entries correspond to measurements that have been performed for a specific EC number, substrate and organism of origin; the same applies to specific activities, however used substrates for obtaining these parameters are not reported in the database; Molecular weights are reported for specific pairs of EC number - organism of origin.
+All available $k_{cat}$ numbers, specific activities and molecular weights of enzymes have been retrieved from the BRENDA database, using the provided SOAP methods for python in the [BRENDA website](https://www.brenda-enzymes.org/soap.php). $k_{cat}$ numbers entries correspond to measurements that have been performed for a specific EC number, substrate and organism of origin; the same applies to specific activities, however such parameters are not reported in a substrate specific way; Molecular weights are reported for specific pairs of EC number - organism of origin.
 
 Parameters entries for mutant and recombinant enzymes have been discarded, more details of the retrieval steps are described in the python scripts stored in the directory [geckomat/brenda_parser](https://github.com/SysBioChalmers/GECKO/tree/master/geckomat/brenda_parser) of the GECKO toolbox.
 
-- Loading Kcat values [1/s]
+- Loading $k_{cat}$ values [1/s]
 ```{r loadKcats, echo=FALSE}
 ```
 - Loading Specific Activity values [umol/min/mg]
@@ -57,15 +70,14 @@ Parameters entries for mutant and recombinant enzymes have been discarded, more 
 - Loading enzyme data from KEGG
 ```{r loadKEGG_enzData, echo=FALSE}
 ```
-\n
 
 # 2. Preprocess data
 
 ### 2.1 Extend dataset with specific activity values
 
-Get extra Kcat values from Specific activities and molecular weights data using the relationship: $K_{cat} = SA * M_{weight}$
+Get extra $k_{cat}$ values from Specific activities and molecular weights data using the relationship: $k_{cat} = SA * M_{weight}$
 
-The original Kcats dataset contained:
+The original $k_{cat}$ dataset consisted of:
 ```{r, echo=FALSE}
 print(paste(nrow(kcats),' entries for ',length(unique(kcats[,1])),' different EC numbers',sep=''))
 ```
@@ -91,17 +103,18 @@ print(paste(nrow(dataset),' entries for ',length(unique(dataset[,1])),' differen
 ```{r plotVennDiagram, echo=FALSE, warning=FALSE}
 ```
 
-```{r ext_data_EC_venn,fig.height = 0.8, fig.width = 0.8,fig.align = "center", fig.cap = "\\label{fig:ext_data_EC_venn}Unique EC numbers in the dataset by origin", echo=FALSE, warning=FALSE}
+```{r ext_data_EC_venn,fig.height = 0.3, fig.width = 0.3,fig.align = "center", fig.cap = "\\label{fig:ext_data_EC_venn}Source of unique EC numbers in the dataset", echo=FALSE, warning=FALSE}
 elementsList <- list(unique(kcats[,1]),unique(SA_kcats[,1]))
 categories   <- c('Kcats','SA')
-colorValues  <- c('blue','red')
-intLabSize   <- c(0.4,0.5,0.4)
+colorPallete <- cividis(10)
+colorValues  <- c(colorPallete[3],colorPallete[8])
+intLabSize   <- c(0.15,0.2,0.15)
 outVenn      <- plotVennDiagram(elementsList,categories,colorValues,intLabSize,TRUE)
 vennP        <- outVenn[[1]]
 #grid.arrange(vennP, ncol = 1)
 ```
 
-From here onwards, the term dataset will refer to the extended dataset obtained by merging Kcat values with those obtained from the specific activities dataset.
+From here onwards, the term dataset will refer to the extended dataset obtained by merging $k_{cat}$ values with those obtained from the specific activities dataset.
 
 ### 2.2 Get enzymes information (pathways, genes) from KEGG ftp
 
@@ -124,11 +137,12 @@ print(paste(nrow(EC_kegg),' different EC numbers',sep=''))
 ```
 
 A venn diagram for the EC number entries available in BRENDA and KEGG databases is shown below:
-```{r venn_BRENDA_KEGG,fig.height = 0.8, fig.width = 0.8,fig.align = "center", fig.cap = "\\label{fig:venn_BRENDA_KEGG}EC numbers overlap between BRENDA and KEGG datasets", echo=FALSE, warning=FALSE}
+```{r venn_BRENDA_KEGG,fig.height = 0.3, fig.width = 0.3,fig.align = "center", fig.cap = "\\label{fig:venn_BRENDA_KEGG}Unique EC numbers in BRENDA and KEGG.", echo=FALSE, warning=FALSE}
 elementsList <- list(unique(dataset[,1]),unique(EC_kegg[,1]))
 categories   <- c('BRENDA','KEGG')
-colorValues  <- c('blue','red')
-intLabSize   <- c(0.4,0.5,0.4)
+colorPallete <- cividis(10)
+colorValues  <- c(colorPallete[3],colorPallete[8])
+intLabSize   <- c(0.15,0.2,0.15)
 outVenn      <- plotVennDiagram(elementsList,categories,colorValues,intLabSize,TRUE)
 vennP        <- outVenn[[1]]
 #grid.arrange(vennP, ncol = 1)
@@ -136,7 +150,7 @@ vennP        <- outVenn[[1]]
 
 The KEGG database provides information that links each EC number entry to all of the pathways in which it might participate. This allows to add a metabolic subgroup to each of the entries in the extended dataset used in this study. Therefore, 3,118 unique EC numbers in the dataset can be classified by metabolic context groups (metGroups). 
 
-**Note:**The EC numbers not present in KEGG are annotated as part of the group 'Others' for this study.
+**Note:** The EC numbers not present in KEGG are annotated as part of the group 'Others' for this study.
 ```{r classify_pathways, echo=FALSE}
 ```
 
@@ -146,10 +160,9 @@ EC_kegg    <- output[[1]]
 pathGroups <- output[[2]]
 ```
 
-\n
 The classified pathways are:
 ```{r, echo=FALSE, warning=FALSE}
-kable(pathGroups, caption= 'KEGG pathways classification used in this study', format = 'markdown')
+kable(pathGroups, caption= "KEGG pathways classification used in this study", format = 'markdown')
 ```
 
 ```{r add_MetGroup, echo=FALSE, warning=FALSE}
@@ -157,6 +170,8 @@ kable(pathGroups, caption= 'KEGG pathways classification used in this study', fo
 
 ```{r, echo=FALSE, warning=FALSE}
 dataset <- add_MetGroup(dataset,EC_kegg)
+#Generate a txt file with the extended dataset of kinetic parameters
+write.table(dataset, '../results/kineticData.txt', sep = "\t",col.names = TRUE)
 ```
 
 # 3. Data analysis
@@ -177,29 +192,29 @@ Not all of the enzyme classes are of the same interest for the scientific commun
 
 The top ten represented EC numbers in the dataset are:
 ```{r, echo=FALSE, warning=FALSE}
-kable(N_entries[1:10,], caption= 'Top10 enzyme classes by number of reported Kcat values', format = 'markdown')
+kable(N_entries[1:10,], caption= "Top10 enzyme classes by number of reported Kcat values", format = 'latex')
 ```
 
-Actually, most of the enzyme classes are poorly represented in the dataset, with at least 50% percent of the total number of unique EC numbers having less than 4 reported Kcat values (for different organisms and substrates).
+Actually, most of the enzyme classes are poorly represented in the dataset, with at least 50% percent of the total number of unique EC numbers having less than 4 reported $k_{cat}$ values (for different organisms and substrates).
 ```{r getCumulativeDist, echo=FALSE, warning = FALSE}
 ```  
 
-```{r ECnumber_entries, fig.height = 1.5, fig.width = 2.5, fig.align = "center", fig.cap = "\\label{fig:ECnumber_entries}Number of entries per enzyme class.", echo=FALSE, warning=FALSE}
+```{r ECnumber_entries, fig.height = 0.75, fig.width = 1.75, fig.align = "center", fig.cap = "\\label{fig:ECnumber_entries}Number of entries per enzyme class.", echo=FALSE, warning=FALSE}
 xLabel     <- 'Log2(# of total entries per enzyme class)'
 yLabel     <- 'Cumulative relative frequency'
 xLimit     <- 8
 df         <- as.data.frame(log2(as.numeric(N_entries[,2])))
-getCumulativeDist(df,xLabel,yLabel,xLimit,6)
+getCumulativeDist(df,xLabel,yLabel,xLimit,4)
 ``` 
 
 The dataset also presents heterogeneity when it comes to the number of reported parameters for the different families of enzyme classes (top-level EC numbers), being hydrolases (EC3.x.x.x) and oxidoreductases (EC1.x.x.x) the most represented families, comprising almost 70% of the total number of entries.
 ```{r getPieChart, echo=FALSE, warning=FALSE}
 ```
 
-```{r pie_EC_numbers, fig.align = "center", fig.cap = "\\label{fig:pie_EC_numbers}Dataset compisition by enzyme classes", echo=FALSE, warning=FALSE}
+```{r pie_EC_numbers, fig.align = "center", fig.cap = "\\label{fig:pie_EC_numbers}Dataset composition by enzyme classes", echo=FALSE, warning=FALSE}
 column  <- which(colnames(dataset)=='enz_Family')
 colors  <- c('red','black','blue','orange','dark green','brown')
-piePlot <- getPieChart(dataset,column,8,colors)
+piePlot <- getPieChart(dataset,column,4,colors)
 plot(piePlot)
 ```  
 
@@ -217,7 +232,7 @@ average    <- output[[3]]
 names        <- c('Oxidoreductases','Transferases','Hydrolases','Lyases','Isomerases','Ligases')
 df           <- data.frame(classes,names,average,stringsAsFactors = FALSE)
 colnames(df) <- c('Top-Level_ECnumber','Enzymes_family','Average_entries_per_ECnumber')
-kable(df, caption= 'Average number of entries per enzyme class for the different enzyme families.', format = 'markdown')
+kable(df, caption= "Average number of entries per enzyme class for the different enzyme families.", format = 'latex')
 ``` 
 
 ### 3.1.2 Data composition per organism
@@ -238,25 +253,38 @@ orgsData        <- data_orgs_composition(dataset)
 org_sortedList  <- orgsData[[1]]
 ```
 
+Number of reported $k_{cat}$ entries per organism:
+```{r getBarPlot, echo=FALSE}
+```
+
+```{r entries_per_organism, fig.height = 0.75, fig.width = 1.75, fig.align = "center", fig.cap = "\\label{fig:entries_per_organism}Number of entries per organism.", echo=FALSE}
+xLabel   <- 'Log2(entries per organism)'
+yLabel   <- 'Number of organisms'
+BinWidth <- 1
+#print(median(as.matrix(org_sortedList$Entries)))
+#print(mean(as.matrix(org_sortedList$Entries)))
+data <- as.matrix(log2(org_sortedList$Entries))
+getBarPlot(data,BinWidth,xLabel,yLabel,4)
+``` 
+
+```{r, echo=FALSE, warning=FALSE}
+kable(org_sortedList[1:10,], caption= "Top10 organisms by number of reported Kcat values", format = 'latex')
+```
+
 Representation of the different organism Kingdoms in the analysed dataset
-```{r pie_org_kingdoms, fig.align = "center", fig.cap = "\\label{fig:pie_org_kingdoms}Dataset compisition by organisms Kingdom", echo=FALSE}
+```{r pie_org_kingdoms, fig.align = "center", fig.cap = "\\label{fig:pie_org_kingdoms}Dataset composition by organisms Kingdom", echo=FALSE}
 column  <- which(colnames(org_sortedList)=='Kingdom')
 colors  <- c('blue','purple','red','orange','green','brown','grey')
-piePlot <- getPieChart(org_sortedList,column,8,colors)
+piePlot <- getPieChart(org_sortedList,column,5,colors)
 plot(piePlot)
 ```  
 
-The top ten represented organisms in the dataset are:
-```{r, echo=FALSE, warning=FALSE}
-kable(org_sortedList[1:10,], caption= 'Top10 organisms by number of reported Kcat values', format = 'markdown')
-```
-
-As it has been shown, the studied dataset is biased towards certain well-studied organisms, letting most of the included organisms with a very poor representation in the dataset Kcat distributions.
+As it has been shown, the studied dataset is biased towards certain well-studied organisms, letting most of the included organisms with a very poor representation in the $k_{cat}$ dataset.
 
 ### 3.1.3 Data composition per metabolic groups
 
 Representation of the different metabolic groups in the analysed dataset.
-```{r metGroups_EC_venn,fig.height = 1, fig.width = 1,fig.align = "center", fig.cap = "\\label{fig:metGroups_EC_venn}Unique EC numbers in the dataset by metabolic subgroup", echo=FALSE, warning=FALSE}
+```{r metGroups_EC_venn,fig.height = 0.45, fig.width = 0.45,fig.align = "center", fig.cap = "\\label{fig:metGroups_EC_venn}Unique EC numbers in the dataset by metabolic subgroup", echo=FALSE, warning=FALSE}
 column        <- which(colnames(dataset)=='metGroups')
 metGroups     <- c('CEM','ALM','ISM','Others')
 output        <- getDistributionsList(dataset,metGroups,column)
@@ -264,8 +292,9 @@ list_metGroup <- output[[1]]
 lab_metG      <- output[[2]]
 average       <- output[[3]]
 EC_metG       <- output[[4]]
-colorValues  <- c('dark green','yellow','red','grey')
-intLabSize   <- rep(0.4,15)
+colorPallete <- cividis(length(metGroups))
+colorValues  <- c(colorPallete[1],colorPallete[4],colorPallete[3],colorPallete[2])
+intLabSize   <- rep(0.2,15)
 outVenn      <- plotVennDiagram(EC_metG,metGroups,colorValues,intLabSize,TRUE)
 ```
 
@@ -276,10 +305,12 @@ outVenn      <- plotVennDiagram(EC_metG,metGroups,colorValues,intLabSize,TRUE)
 ```
 
 Unique EC numbers per metabolic groups for the different organism Kingdoms.
-```{r bar_orgs_metGroups, fig.align = "center"}
+```{r bar_orgs_metGroups, fig.align = "center",echo=FALSE,warning=FALSE}
 labOrgs     <- c('animals','plants','protists','fungi','bacteria','archaea')
 countsTable <- get_orgs_metGroups_table(dataset,labOrgs,metGroups)
-barPlot_counts(countsTable,'# of values','Organism Kingdoms',8,colorValues)
+colorPallete <- cividis(length(metGroups))
+colours     <- c(colorPallete[4],colorPallete[1],colorPallete[3],colorPallete[2])
+barPlot_counts(countsTable,'# of values','Organism Kingdoms',6,colours)
 ```
 
 The dataset is not just heterogeneous regarding its composition by organism kingdoms, but also within each of these kingdoms, different metabolic groups of enzymes have been studied in a diverse way, showing a majority of reported values for CEM and ALM enzyme classes for most of the cases.
@@ -288,58 +319,61 @@ The dataset is not just heterogeneous regarding its composition by organism king
 
 It is said that evolution  has shaped kinetic parameters in a very specific way, differentiating catalytic activities by metabolic context, phylogenetic origin and substrate specificity. If such specialization exists for a big dataset as this one, then a wide spanning of reported values can be expected.
 
-Kcats dispersion per EC number
+$k_{cat}$ dispersion per EC number
 ```{r getBarPlot, echo=FALSE}
 ```
 
-```{r KcatsDispersion, fig.height = 1.5, fig.width = 2.5, fig.align = "center", fig.cap = "\\label{fig:KcatsDispersion}Kcats dispersion per EC number.", echo=FALSE}
+```{r KcatsDispersion, fig.height = 1, fig.width = 1.75, fig.align = "center", fig.cap = "\\label{fig:KcatsDispersion}Kcats dispersion per EC number.", echo=FALSE}
 xLabel   <- 'Kcats dispersion (orders of magnitude)'
 yLabel   <- 'Number of enzyme classes'
 BinWidth <- 1
-getBarPlot(spanning,BinWidth,xLabel,yLabel,6)
+getBarPlot(spanning,BinWidth,xLabel,yLabel,4)
 ``` 
 
-The previous histogram shows how most of the studied enzyme classes present a very narrow spanning of their reported Kcat values, however few enzyme classes (EC numbers) with a surprisingly wide spanning of catalytic activities, (**11 orders of magnitude!**) can also be found in the dataset.
+The previous histogram shows how most of the studied enzyme classes present a very narrow spanning of their reported $k_{cat}$ values, however few enzyme classes (EC numbers) with a surprisingly wide spanning of catalytic activities, (**11 orders of magnitude!**) can also be found in the dataset.
 
-However, it is also important to analyze how large is the variance of a given distribution related to its characteristic values. For this, a normalized dispersion is metric, which here will be called as "spreading" and is defined as: **$spreading = log_{10}(Median) / [log_{10}(Max)-log_{10}(Min)]$**. 
+However, it is also important to analyze how large is the variance of a given distribution related to its characteristic values. For this, a normalized dispersion is metric, which here will be called as "spreading" and is defined as: 
+
+**$spreading = log_{10}(Median) / [log_{10}(Max)-log_{10}(Min)]$**. 
 
 This metric allows to explore how wide or narrow a distribution is compared to its median value. A value lower than 1 means that the distribution spanning is higher than its median value (in terms of orders of magnitude).
  
-Normalized Kcats dispersion per EC# (orders of magnitude)
-```{r KcatSpreadCumDist, fig.height = 1.5, fig.width = 2, fig.align = "center", fig.cap = "\\label{fig:KcatSpreadCumDist}Kcats spreading per EC number.", echo=FALSE, warning=FALSE}
+Normalized $k_{cat}$ dispersion per EC# (orders of magnitude)
+```{r KcatSpreadCumDist, fig.height = 0.75, fig.width = 1.2, fig.align = "center", fig.cap = "\\label{fig:KcatSpreadCumDist}Kcats spreading per EC number.", echo=FALSE, warning=FALSE}
 xLabel     <- 'Kcats spreading per EC number'
 yLabel     <- 'Cumulative relative frequency'
 xLimit     <- 3
 xIntercept <- 1
-getCumulativeDist(spreading,xLabel,yLabel,xLimit,6,xIntercept)
+getCumulativeDist(spreading,xLabel,yLabel,xLimit,3,xIntercept)
 ```  
 
-This cumulative distribution shows that around 20% of the enzyme classes show very wide distributions of Kcat values in which a median or mean value cannot be considered as representative of the distribution due to its large spanning.
+This cumulative distribution shows that around 20% of the enzyme classes show very wide distributions of $k_{cat}$ values in which a median or mean value cannot be considered as representative of the distribution due to its large spanning.
 
-## 3.3 Kcats distributions
+## 3.3 $k_{cat}$ distributions
 
-### 3.3.1 Kcats distributions per enzymes family
+### 3.3.1 $k_{cat}$ distributions per enzymes family
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
-Cumulative Kcat distributions for the different enzyme families
+Cumulative $k_{cat}$ distributions for the different enzyme families
 ```{r cumDist_enzClasses, fig.align = "center", fig.cap = "\\label{fig:cumDist_enzClasses}Cumulative distributions for Kcat values per enzymes family", echo=FALSE, warning=FALSE}
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
+colPalette <- cividis(length(list_EC))
 multipleCumDist <- multipleCumDist(list_EC,labels_EC,xLabel,yLabel,x_limits,'Enzyme classes',10)
 ```
 
-In order to test if distributions of Kcat values differ significantly amongst enzyme families, a pairwise Kolmogorov-Smirnov statistical test is applied to every possible combination of distributions.
+In order to test if distributions of $k_{cat}$ values differ significantly amongst enzyme families, a pairwise Kolmogorov-Smirnov statistical test is applied to every possible combination of distributions.
 ```{r statTest_distributions, echo=FALSE, warning=FALSE}
 ``` 
 
 ```{r pVal_ECclasses_dist, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_EC,classes)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-As expected enzymes catalytic activity distributions differ significantly across enzyme families, it should be noted that enzyme families represent groups of biochemical reactions wich drastically differ in their mechanisms. To dig deeper into the catalytic specialization of different enzyme sub-families, wild cards can be introduced into the datasets EC numbers to obtain the subfamilies with more data entries available.
+As expected enzymes catalytic activity distributions differ significantly across enzyme families, it should be noted that enzyme families represent groups of biochemical reactions wich drastically differ in their mechanisms. To dig deeper into the catalytic specialization of different enzyme sub-families, wild cards can be introduced into the dataset EC numbers to obtain the subfamilies with more data entries available.
 ```{r add_WildCards, echo=FALSE, warning=FALSE}
 ``` 
 
@@ -358,10 +392,10 @@ output     <- get_WC1_distributions(df_WC1,df_WC2,Ndists,rank)
 data_WC1     <- output[[1]]
 classesWC1   <- output[[2]]
 df_topEC_WC2 <- output[[3]]
-kable(df_topEC_WC2, caption= 'Top10 represented enzyme subfamilies (2 wild-cards)', format = 'markdown')
+kable(df_topEC_WC2, caption= "Top10 represented enzyme subfamilies (2 wild-cards)", format = 'latex')
 ```
 
-The top1 represented enzyme subfamily (top1 EC# w/1 wild-card) comprises different groups of enzymes (EC#'s w/2 wild-cards), the next plot shows how different Kcats distributions are for these enzyme groups.
+The top1 represented enzyme subfamily (top1 EC# w/1 wild-card) comprises different groups of enzymes (EC#'s w/2 wild-cards), the next plot shows how different $k_{cat}$ distributions are for these enzyme groups.
 ```{r, echo=FALSE, warning=FALSE}
 #Get distributions of values and strings for plotting
 column        <- which(colnames(dataset)=='ECnumber')
@@ -377,17 +411,20 @@ labelStrs     <- output[[2]]
 ```
 
 ```{r Dist_top1EC_WC2, fig.align = "center", fig.cap = "\\label{fig:Dist_top1EC_WC2}Cumulative distributions for Kcat values for different enzyme groups in the most represented enzyme subfamily (2 wild-cards)", echo=FALSE, warning=FALSE}
-df     <- DistList_to_DataFrame (list_EC_class,classesWC1)
-colors <- c('blue','green','yellow','red','purple','grey')
-multipleDensityPlot(df,xLabel,'Frequency',10,x_Limits,TRUE,labelStrs,colors) 
+df       <- DistList_to_DataFrame (list_EC_class,classesWC1)
+colors   <- cividis(6)#factor(c('blue','green','yellow','red','purple','grey'))
+plotName <- paste('../results/ec3_4_x_x_distributions.png')
+#png(plotName,width = 1000, height = 600)
+multipleDensityPlot(df,xLabel,'Frequency',12,x_Limits,FALSE,labelStrs,colors) 
+#dev.off()
 ```
 
 ```{r pValtop1EC_WC2, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_EC_class,classesWC1)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ```
 
-The same can be observed for the top2 represented enzyme subfamily.
+The same can be observed for the top-2 represented enzyme subfamily.
 ```{r, echo=FALSE, warning=FALSE}
 Ndists     <- 6
 rank       <- 2
@@ -406,19 +443,22 @@ labelStrs     <- output[[2]]
 
 ```{r Dist_top2EC_WC2, fig.align = "center", fig.cap = "\\label{fig:Dist_top2EC_WC2}Cumulative distributions for Kcat values for different enzyme groups in the most represented enzyme subfamily (2 wild-cards)", echo=FALSE, warning=FALSE}
 df <- DistList_to_DataFrame (list_EC_class,classesWC2)
-multipleDensityPlot(df,xLabel,'Frequency',10,x_Limits,TRUE,labelStrs,colors) 
+plotName <- paste('../results/ec1_1_x_x_distributions.png')
+#png(plotName,width = 600, height = 600)
+multipleDensityPlot(df,xLabel,'Frequency',12,x_Limits,FALSE,labelStrs,colors) 
+#dev.off()
 ```
 
 ```{r pValtop2EC_WC2, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_EC_class,classesWC2)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ```
 
 It can be seen that kinetic parameters not only differ significantly across general enzyme families (top-level EC numbers), but also across different enzyme subgroups (EC#'s w/ 2 wild-cards) within these families.
 
-### 3.3.2 Kcats distributions per organism Kingdoms
+### 3.3.2 $k_{cat}$ distributions per organism Kingdoms
 
-Cumulative Kcat distributions for the different organism Kingdoms
+Cumulative $k_{cat}$ distributions for the different organism Kingdoms
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -433,15 +473,19 @@ labOrgs    <- gsub(';','',labOrgs)
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
-multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Kingdom',10)
+plotName <- paste('../results/kingdom_distributions.png')
+#png(plotName,width = 900, height = 600)
+colPalette <- cividis(length(list_org))
+multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Kingdom',8)
+#dev.off()
 ```  
 
 ```{r pVal_orgKingdoms_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_org,labOrgs)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-### 3.3.3 Kcats distributions per metabolic pathways groups
+### 3.3.3 $k_{cat}$ distributions per metabolic pathways groups
 ```{r multipleDensityPlot, echo=FALSE, warning=FALSE}
 ```
 
@@ -452,11 +496,14 @@ kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical t
 df     <- DistList_to_DataFrame (list_metGroup,metGroups)
 xLabel <- 'Kcats [1/s]'
 yLabel <- 'Frequency'
-colors <- c('yellow','green','red','grey')
-multipleDensityPlot(df,xLabel,yLabel,10,x_Limits,TRUE,lab_metG,colors) 
+colors <- cividis(4)#c('yellow','green','red','grey')
+plotName <- paste('../results/superPaths_distributions.png')
+#png(plotName,width = 600, height = 600)
+multipleDensityPlot(df,xLabel,yLabel,12,x_Limits,TRUE,lab_metG,colors) 
+#dev.off()
 ```
 
-### 3.3.4 Kcats distributions per metabolic pathways groups per organism Kingdoms
+### 3.3.4 $k_{cat}$ distributions per metabolic pathways groups per organism Kingdoms
 
 #### Animals
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
@@ -465,7 +512,7 @@ multipleDensityPlot(df,xLabel,yLabel,10,x_Limits,TRUE,lab_metG,colors)
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
 
-```{r cumDist_metGroup_animals, echo=FALSE, warning=FALSE}
+```{r cumDist_metGroup_animals, fig.cap = "\\label{fig:cumDist_metGroup_animals}Cumulative distributions for Kcat values by metabolic subgroup for Animals", echo=FALSE, warning=FALSE}
 indexes    <- grep(labOrgs[1],dataset[,3])
 df         <- dataset[indexes,]
 metGroups  <- c('CEM','ALM','ISM','Others')
@@ -476,12 +523,12 @@ labelStrs  <- gsub(';','',labelStrs)
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
-multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
 
 ```{r pVal_animals_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
 #### Plants
@@ -491,7 +538,7 @@ kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical t
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
 
-```{r cumDist_metGroup_plants, echo=FALSE, warning=FALSE}
+```{r cumDist_metGroup_plants, fig.cap = "\\label{fig:cumDist_metGroup_plants}Cumulative distributions for Kcat values by metabolic subgroup for Plants", echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
 indexes    <- grep('plants',dataset[,orgCol])
@@ -503,12 +550,12 @@ labelStrs  <- gsub(';','',labelStrs)
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
-multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
 
 ```{r pVal_plants_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
 #### Fungi
@@ -518,7 +565,7 @@ kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical t
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
 
-```{r cumDist_metGroup_fungi, echo=FALSE, warning=FALSE}
+```{r cumDist_metGroup_fungi, fig.cap = "\\label{fig:cumDist_metGroup_fungi}Cumulative distributions for Kcat values by metabolic subgroup for Fungi", echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
 indexes    <- grep('fungi',dataset[,orgCol])
@@ -530,12 +577,12 @@ labelStrs  <- gsub(';','',labelStrs)
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
-multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
 
 ```{r pVal_fungi_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
 #### Protists
@@ -545,7 +592,7 @@ kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical t
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
 
-```{r cumDist_metGroup_protists, echo=FALSE, warning=FALSE}
+```{r cumDist_metGroup_protists, fig.cap = "\\label{fig:cumDist_metGroup_protists}Cumulative distributions for Kcat values by metabolic subgroup for Protists", echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
 indexes    <- grep('protists',dataset[,orgCol])
@@ -557,12 +604,12 @@ labelStrs  <- gsub(';','',labelStrs)
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
-multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
 
 ```{r pVal_protists_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
 #### Bacteria
@@ -572,7 +619,7 @@ kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical t
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
 
-```{r cumDist_metGroup_bacteria, echo=FALSE, warning=FALSE}
+```{r cumDist_metGroup_bacteria, fig.cap = "\\label{fig:cumDist_metGroup_bacteria}Cumulative distributions for Kcat values by metabolic subgroup for Bacteria", echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
 indexes    <- grep('bacteria',dataset[,orgCol])
@@ -584,12 +631,12 @@ labelStrs  <- gsub(';','',labelStrs)
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
-multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
 
 ```{r pVal_bacteria_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
  
 #### Archaea
@@ -599,7 +646,7 @@ kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical t
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
 
-```{r cumDist_metGroup_archaea, echo=FALSE, warning=FALSE}
+```{r cumDist_metGroup_archaea, fig.align = "center", fig.cap = "\\label{fig:cumDist_metGroup_archaea}Cumulative distributions for Kcat values by metabolic subgroup for Archaea",echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
 indexes    <- grep('archaea',dataset[,orgCol])
@@ -611,11 +658,11 @@ labelStrs  <- gsub(';','',labelStrs)
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
-multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',10)
+multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
 
 ```{r pVal_archaea_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= 'p-values under the pairwise Kolmogorov-Smirnov statistical test', format = 'markdown')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
   
