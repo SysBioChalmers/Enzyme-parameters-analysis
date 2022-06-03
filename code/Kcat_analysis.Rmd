@@ -512,8 +512,7 @@ df <- statTest_distributions(list_org,labOrgs)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-However, as it has been seen that metabolic context is an important factor at differentiating $K_cat$ values, this should also be taken into account when studying the role of phylogeny.$Figs. S1.15-20$ show that the same trend holds for each of the studied metabolic contexts groups, i.e. enzymes for microbial organisms tend to be faster than those for higher organisms across *all* studied metabolic contexts.
-
+However, due to the impact of metabolic context on $K_{cat}$ values differentiation ($Fig. S1.13$), this should also be taken into account when studying the role of phylogeny.$Figs. S1.15-20$ show that the same trend holds for each of the studied metabolic contexts groups, i.e. enzymes for microbial organisms, espcially for Fungi, tend to be faster than those for other organisms, such as animals, across *all* studied metabolic contexts.
 
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
@@ -545,6 +544,11 @@ multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Ki
 #dev.off()
 ```  
 
+```{r pVal_orgKingdoms_Dists_CEM, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_org,labOrgs)
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+``` 
+
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -575,6 +579,11 @@ multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Ki
 #dev.off()
 ```  
 
+```{r pVal_orgKingdoms_Dists_ALM, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_org,labOrgs)
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+``` 
+
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -604,6 +613,11 @@ colPalette <- cividis(length(list_org))
 multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Kingdom',8)
 #dev.off()
 ```  
+
+```{r pVal_orgKingdoms_Dists_ISM, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_org,labOrgs)
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+``` 
 
 ### 3.3.4 $k_{cat}$ distributions per metabolic pathways groups per organism Kingdoms
 
