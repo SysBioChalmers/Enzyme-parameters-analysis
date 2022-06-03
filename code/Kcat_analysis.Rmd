@@ -7,7 +7,7 @@ header-includes:
 - \renewcommand{\thetable}{S1.\arabic{table}}
 - \floatplacement{figure}{H}
 - \floatplacement{table}{H}
-date: "March 2021"
+date: "June 2022"
 output:
   pdf_document:
     fig_caption: yes        
@@ -33,6 +33,12 @@ This is a global statistical study of turnover numbers ($k_{cat}$ parameters) fo
 
 ### 1.1 Loading packages
 ```{r warning = FALSE, message = FALSE, results = FALSE}
+options(repos = c(
+  yihui = 'https://yihui.r-universe.dev',
+  CRAN = 'https://cloud.r-project.org'
+))
+
+install.packages('xfun')
 library(tidyr)
 library(dplyr)
 library(plyr)
