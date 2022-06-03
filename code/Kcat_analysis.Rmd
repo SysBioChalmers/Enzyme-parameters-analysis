@@ -461,9 +461,30 @@ kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical t
 
 It can be seen that kinetic parameters not only differ significantly across general enzyme families (top-level EC numbers), but also across different enzyme subgroups (EC#'s w/ 2 wild-cards) within these families.
 
-### 3.3.2 $k_{cat}$ distributions per organism Kingdoms
+### 3.3.2 $k_{cat}$ distributions per metabolic context
 
-Each entry of the retrieved $k_{cat}$ values contains information regarding substrate and organism, it is then possible to assign a phylogenetic classification to each entry by retrieving the phylogenetic classification of the organism of origin from the KEGG organisms database. Therefore, comparison of $k_{cat}$ distributions by different taxonomy levels is possible. $Fig. S1.13$ shows $k_{cat}$ values when sorted by organism kingdom, where it is evident that activity values for enzymes in microbial organisms (fungi, bacteria and archaea) tend to be significantly higher than those for pluricellular organisms such as animals and plants. 
+As all $k_{cat}$ entries were assigned a metabolic subgroup, according to the KEGG pathways classification, the effect of metabolic context on $k_{cat}$ values differentiation was also assessed. $Fig. S1.13$ shows that, in general, enzymes in the central carbon and energy metabolism pathways tend to be significantly faster than those involved in amino acids, lipids and secondary metabolism.
+
+```{r multipleDensityPlot_metGroup, fig.cap = "\\label{fig:multipleDensityPlot_metGroup}Kcat distributions sorted by metabolic context of enzymes", echo=FALSE, warning=FALSE}
+```
+
+```{r DistList_to_DataFrame, echo=FALSE, warning=FALSE}
+```
+
+```{r , echo=FALSE, warning=FALSE}
+df     <- DistList_to_DataFrame (list_metGroup,metGroups)
+xLabel <- 'Kcats [1/s]'
+yLabel <- 'Frequency'
+colors <- cividis(4)
+plotName <- paste('../results/superPaths_distributions.png')
+#png(plotName,width = 600, height = 600)
+multipleDensityPlot(df,xLabel,yLabel,12,x_Limits,TRUE,lab_metG,colors) 
+#dev.off()
+```
+
+### 3.3.3 $k_{cat}$ distributions per organism Kingdoms
+
+Each entry of the retrieved $k_{cat}$ values contains information regarding substrate and organism, it is then possible to assign a phylogenetic classification to each entry by retrieving the phylogenetic classification of the organism of origin from the KEGG organisms database. Therefore, comparison of $k_{cat}$ distributions by different taxonomy levels is possible. $Fig. S1.14$ shows $k_{cat}$ values when sorted by organism kingdom, where it is evident that activity values for enzymes in microbial organisms (fungi, bacteria and archaea) tend to be significantly higher than those for pluricellular organisms such as animals and plants. 
 
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
@@ -491,29 +512,7 @@ df <- statTest_distributions(list_org,labOrgs)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-### 3.3.3 $k_{cat}$ distributions per metabolic pathways groups
-
-As all $k_{cat}$ entries were assigned a metabolic subgroup, according to the KEGG pathways classification, the effect of metabolic context on $k_{cat}$ values differentiation was also assessed. $Fig. S1.14$ shows that, in general, enzymes in the central carbon and energy metabolism pathways tend to be significantly faster than those involved in amino acids, lipids and secondary metabolism.
-
-```{r multipleDensityPlot_metGroup, fig.cap = "\\label{fig:multipleDensityPlot_metGroup}Kcat distributions sorted by metabolic context of enzymes", echo=FALSE, warning=FALSE}
-```
-
-```{r DistList_to_DataFrame, echo=FALSE, warning=FALSE}
-```
-
-```{r , echo=FALSE, warning=FALSE}
-df     <- DistList_to_DataFrame (list_metGroup,metGroups)
-xLabel <- 'Kcats [1/s]'
-yLabel <- 'Frequency'
-colors <- cividis(4)
-plotName <- paste('../results/superPaths_distributions.png')
-#png(plotName,width = 600, height = 600)
-multipleDensityPlot(df,xLabel,yLabel,12,x_Limits,TRUE,lab_metG,colors) 
-#dev.off()
-```
-
-However, in order to conclude this, the effect of phylogeny should be isolated, as suggested by $Fig. S1.13$. $Figs. S1.15-20$ show that the same trend holds for each of the studied phylogenetic groups, i.e. enzymes in central carbon and energy metabolism tend to be faster than others in all kingdoms of life. 
-
+However, as it has been seen that metabolic context is an important factor at differentiating $K_cat$ values, this should also be taken into account when studying the role of phylogeny.$Figs. S1.15-20$ show that the same trend holds for each of the studied phylogenetic groups, i.e. enzymes in central carbon and energy metabolism tend to be faster than others in *all* kingdoms of life. 
 
 ### 3.3.4 $k_{cat}$ distributions per metabolic pathways groups per organism Kingdoms
 
