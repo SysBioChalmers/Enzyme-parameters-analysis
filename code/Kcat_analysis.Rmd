@@ -50,6 +50,7 @@ library(kableExtra)
 library(ggplot2)
 library(ggrepel)
 library(viridis)
+library(tinytex)
 ```
 ### 1.2 Loading R scripts for this study 
 ```{r warning = FALSE, message = FALSE}
@@ -325,7 +326,6 @@ The dataset is not just heterogeneous regarding its composition by organism king
 
 It is said that evolution  has shaped kinetic parameters in a very specific way, differentiating catalytic activities by metabolic context, phylogenetic origin and substrate specificity. If such specialization exists for a big dataset as this one, then a wide spanning of reported values can be expected.
 
-$k_{cat}$ dispersion per EC number
 ```{r getBarPlot, echo=FALSE}
 ```
 
@@ -344,7 +344,6 @@ However, it is also important to analyze how large is the variance of a given di
 
 This metric allows to explore how wide or narrow a distribution is compared to its median value. A value lower than 1 means that the distribution spanning is higher than its median value (in terms of orders of magnitude).
  
-Normalized $k_{cat}$ dispersion per EC# (orders of magnitude)
 ```{r KcatSpreadCumDist, fig.height = 0.75, fig.width = 1.2, fig.align = "center", fig.cap = "\\label{fig:KcatSpreadCumDist}Kcats spreading per EC number.", echo=FALSE, warning=FALSE}
 xLabel     <- 'Kcats spreading per EC number'
 yLabel     <- 'Cumulative relative frequency'
@@ -361,8 +360,8 @@ This cumulative distribution shows that around 20% of the enzyme classes show ve
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
-Cumulative $k_{cat}$ distributions for the different enzyme families
-```{r cumDist_enzClasses, fig.align = "center", fig.cap = "\\label{fig:cumDist_enzClasses}Cumulative distributions for Kcat values per enzymes family", echo=FALSE, warning=FALSE}
+
+```{r cumDist_enzClasses, fig.align = "center", fig.cap = "\\label{fig:cumDist_enzClasses}Cumulative distributions for Kcat values per enzyme family", echo=FALSE, warning=FALSE}
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
@@ -379,7 +378,7 @@ df <- statTest_distributions(list_EC,classes)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-As expected enzymes catalytic activity distributions differ significantly across enzyme families, it should be noted that enzyme families represent groups of biochemical reactions wich drastically differ in their mechanisms. To dig deeper into the catalytic specialization of different enzyme sub-families, wild cards can be introduced into the dataset EC numbers to obtain the subfamilies with more data entries available.
+As expected, enzyme catalytic activity distributions differ significantly across enzyme families. It should be noted that enzyme families represent groups of biochemical reactions wich drastically differ in their mechanisms. To dig deeper into the catalytic specialization of different enzyme sub-families, wild cards can be introduced into the dataset EC numbers to obtain the subfamilies with more data entries available.
 ```{r add_WildCards, echo=FALSE, warning=FALSE}
 ``` 
 
@@ -464,7 +463,8 @@ It can be seen that kinetic parameters not only differ significantly across gene
 
 ### 3.3.2 $k_{cat}$ distributions per organism Kingdoms
 
-Cumulative $k_{cat}$ distributions for the different organism Kingdoms
+Each entry of the retrieved $k_{cat}$ values contains information regarding substrate and organism, it is then possible to assign a phylogenetic classification to each entry by retrieving the phylogenetic classification of the organism of origin from the KEGG organisms database. Therefore, comparison of $k_{cat}$ distributions by different taxonomy levels is possible. $Fig. S1.13$ shows $k_{cat}$ values when sorted by organism kingdom, where it is evident that activity values for enzymes in microbial organisms (fungi, bacteria and archaea) tend to be significantly higher than those for pluricellular organisms such as animals and plants. 
+
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -492,7 +492,10 @@ kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical t
 ``` 
 
 ### 3.3.3 $k_{cat}$ distributions per metabolic pathways groups
-```{r multipleDensityPlot, echo=FALSE, warning=FALSE}
+
+As all $k_{cat}$ entries were assigned a metabolic subgroup, according to the KEGG pathways classification, the effect of metabolic context on $k_{cat}$ values differentiation was also assessed. $Fig. S1.14$ shows that, in general, enzymes in the central carbon and energy metabolism pathways tend to be significantly faster than those involved in amino acids, lipids and secondary metabolism.
+
+```{r multipleDensityPlot, fig.cap = "\\label{fig:cumDist_metGroup_animals}Kcat distributions sorted by metabolic context of enzymes", echo=FALSE, warning=FALSE}
 ```
 
 ```{r DistList_to_DataFrame, echo=FALSE, warning=FALSE}
@@ -502,7 +505,7 @@ kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical t
 df     <- DistList_to_DataFrame (list_metGroup,metGroups)
 xLabel <- 'Kcats [1/s]'
 yLabel <- 'Frequency'
-colors <- cividis(4)#c('yellow','green','red','grey')
+colors <- cividis(4)
 plotName <- paste('../results/superPaths_distributions.png')
 #png(plotName,width = 600, height = 600)
 multipleDensityPlot(df,xLabel,yLabel,12,x_Limits,TRUE,lab_metG,colors) 
