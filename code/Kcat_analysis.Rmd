@@ -178,7 +178,7 @@ kable(pathGroups, caption= "KEGG pathways classification used in this study", fo
 ```{r, echo=FALSE, warning=FALSE}
 dataset <- add_MetGroup(dataset,EC_kegg)
 #Generate a txt file with the extended dataset of kinetic parameters
-write.table(dataset, '../results/kineticData.txt', sep = "\t",col.names = TRUE)
+write.table(dataset, '../results/kineticData.txt', sep = "\t",col.names = FALSE)
 ```
 
 # 3. Data analysis
@@ -465,13 +465,13 @@ It can be seen that kinetic parameters not only differ significantly across gene
 
 As all $k_{cat}$ entries were assigned a metabolic subgroup, according to the KEGG pathways classification, the effect of metabolic context on $k_{cat}$ values differentiation was also assessed. $Fig. S1.13$ shows that, in general, enzymes in the central carbon and energy metabolism pathways tend to be significantly faster than those involved in amino acids, lipids and secondary metabolism.
 
-```{r multipleDensityPlot_metGroup, fig.cap = "\\label{fig:multipleDensityPlot_metGroup}Kcat distributions sorted by metabolic context of enzymes", echo=FALSE, warning=FALSE}
+```{r multipleDensityPlot_metGroup, echo=FALSE, warning=FALSE}
 ```
 
 ```{r DistList_to_DataFrame, echo=FALSE, warning=FALSE}
 ```
 
-```{r , echo=FALSE, warning=FALSE}
+```{r , fig.cap = "\\label{fig:multipleDensityPlot_metGroup}Kcat distributions sorted by metabolic context of enzymes",echo=FALSE, warning=FALSE}
 df     <- DistList_to_DataFrame (list_metGroup,metGroups)
 xLabel <- 'Kcats [1/s]'
 yLabel <- 'Frequency'
@@ -512,7 +512,98 @@ df <- statTest_distributions(list_org,labOrgs)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-However, as it has been seen that metabolic context is an important factor at differentiating $K_cat$ values, this should also be taken into account when studying the role of phylogeny.$Figs. S1.15-20$ show that the same trend holds for each of the studied phylogenetic groups, i.e. enzymes in central carbon and energy metabolism tend to be faster than others in *all* kingdoms of life. 
+However, as it has been seen that metabolic context is an important factor at differentiating $K_cat$ values, this should also be taken into account when studying the role of phylogeny.$Figs. S1.15-20$ show that the same trend holds for each of the studied metabolic contexts groups, i.e. enzymes for microbial organisms tend to be faster than those for higher organisms across *all* studied metabolic contexts.
+
+
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_orgKingdoms_CEM, fig.align = "center", fig.cap = "\\label{fig:cumDist_orgKingdoms_CEM}Cumulative distributions for Kcat values in CEM per organism kingdoms", echo=FALSE, warning=FALSE}
+
+indexes    <- grep('CEM',dataset[,7])
+dtset      <- dataset[indexes,]
+
+column     <- which(colnames(dtset)=='Organism')
+output     <- getDistributionsList(dtset,labOrgs,column)
+list_org   <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+labOrgs    <- gsub(';','',labOrgs)
+
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+
+#plotName <- paste('../results/kingdom_distributions.png')
+#png(plotName,width = 900, height = 600)
+
+colPalette <- cividis(length(list_org))
+multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Kingdom',8)
+#dev.off()
+```  
+
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_orgKingdoms_ALM, fig.align = "center", fig.cap = "\\label{fig:cumDist_orgKingdoms_ALM}Cumulative distributions for Kcat values in ALM per organism kingdoms", echo=FALSE, warning=FALSE}
+
+indexes    <- grep('ALM',dataset[,7])
+dtset      <- dataset[indexes,]
+
+column     <- which(colnames(dtset)=='Organism')
+output     <- getDistributionsList(dtset,labOrgs,column)
+list_org   <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+labOrgs    <- gsub(';','',labOrgs)
+
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+
+#plotName <- paste('../results/kingdom_distributions.png')
+#png(plotName,width = 900, height = 600)
+
+colPalette <- cividis(length(list_org))
+multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Kingdom',8)
+#dev.off()
+```  
+
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_orgKingdoms_ISM, fig.align = "center", fig.cap = "\\label{fig:cumDist_orgKingdoms_ISM}Cumulative distributions for Kcat values in ISM per organism kingdoms", echo=FALSE, warning=FALSE}
+
+indexes    <- grep('ISM',dataset[,7])
+dtset      <- dataset[indexes,]
+
+column     <- which(colnames(dtset)=='Organism')
+output     <- getDistributionsList(dtset,labOrgs,column)
+list_org   <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+labOrgs    <- gsub(';','',labOrgs)
+
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+
+#plotName <- paste('../results/kingdom_distributions.png')
+#png(plotName,width = 900, height = 600)
+
+colPalette <- cividis(length(list_org))
+multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Kingdom',8)
+#dev.off()
+```  
 
 ### 3.3.4 $k_{cat}$ distributions per metabolic pathways groups per organism Kingdoms
 
