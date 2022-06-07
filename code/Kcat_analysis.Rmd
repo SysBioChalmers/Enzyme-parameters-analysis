@@ -484,7 +484,7 @@ multipleDensityPlot(df,xLabel,yLabel,12,x_Limits,TRUE,lab_metG,colors)
 
 ### 3.3.3 $k_{cat}$ distributions per organism Kingdoms
 
-Each entry of the retrieved $k_{cat}$ values contains information regarding substrate and organism, it is then possible to assign a phylogenetic classification to each entry by retrieving the phylogenetic classification of the organism of origin from the KEGG organisms database. Therefore, comparison of $k_{cat}$ distributions by different taxonomy levels is possible. $Fig. S1.14$ shows $k_{cat}$ values when sorted by organism kingdom, where it is evident that activity values for enzymes in microbial organisms (fungi, bacteria and archaea) tend to be significantly higher than those for pluricellular organisms such as animals and plants. 
+Each entry of the retrieved $k_{cat}$ values contains information regarding substrate and organism, it is then possible to assign a phylogenetic classification to each entry by retrieving the classification of the organism of origin from the KEGG organisms database. Therefore, comparison of $k_{cat}$ distributions by different taxonomy levels is possible. $Fig. S1.14$ shows $k_{cat}$ cumulative distributions when sorted by organism kingdom, where it is evident that activity values for enzymes in microbial organisms (fungi, bacteria and archaea) tend to be significantly higher than those for other organisms such as animals and plants. 
 
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
@@ -512,7 +512,7 @@ df <- statTest_distributions(list_org,labOrgs)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-However, due to the impact of metabolic context on $K_{cat}$ values differentiation ($Fig. S1.13$), this should also be taken into account when studying the role of phylogeny.$Figs. S1.15-20$ show that the same trend holds for each of the studied metabolic contexts groups, i.e. enzymes for microbial organisms, espcially for Fungi, tend to be faster than those for other organisms, such as animals, across *all* studied metabolic contexts.
+However, due to the impact of metabolic context on $k_{cat}$ values differentiation ($Fig. S1.13$), this should also be taken into account when studying the role of phylogeny. $Figs. S1.15-20$ show that enzymes in Fungi organisms tend to be significantly faster than those for other organisms across **all** metabolic contexts. Additionally, it was found that enzymes for higher organisms, such as animals, tend to display activity values that are lower, in general, than those for microbial organisms across **all** studied metabolic groups.
 
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
@@ -621,7 +621,10 @@ kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical t
 
 ### 3.3.4 $k_{cat}$ distributions per metabolic pathways groups per organism Kingdoms
 
+It has been shown that, overall, enzymes in central carbon and energy metabolism have been reported to have higher activity values than those in other metabolic contexts ($Fig. S1.13$)). Nonetheless, enzyme activity also seems to be related to the phylogeny of their organism of origin. In order to assess if CEM related enzymes are faster than others, distributions of $k_cat$ values for each studied metabolic context were statistically compared for each of the KEGG kingdoms of life.
+
 #### Animals
+
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -781,4 +784,5 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 df <- statTest_distributions(list_V,metGroups)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
-  
+
+$Figs. S1.18-23$ show cumulative distributions for enzymes sorted by different metabolic groups for each of the KEGG kingdoms of life. Notably, central carbon and energy metabolism enzymes present higher values, on average, than those in other metabolic contexts. Notably, when focusing on enzymes for Fungi and Bacteria organisms (two well-studied phylogenetic groups) it turns out that all $k_cat$ value distributions for the studied metabolic contexts, differ significantly ($Tables S1.16-17$). 
