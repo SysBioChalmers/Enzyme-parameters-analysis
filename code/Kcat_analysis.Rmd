@@ -193,6 +193,8 @@ spanning      <- as.data.frame(plotVariables[[2]])
 spreading     <- as.data.frame(plotVariables[[3]])
 ```
 
+## Data composition
+
 ### 3.1.1 Data composition per enzyme classes
 
 Not all of the enzyme classes are of the same interest for the scientific community. Counting the number of data entries available for every unique EC number allows the identification of the top studied enzyme classes.
@@ -623,14 +625,17 @@ kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical t
 
 It has been shown that, overall, enzymes in central carbon and energy metabolism have been reported to have higher activity values than those in other metabolic contexts ($Fig. S1.13$)). Nonetheless, enzyme activity also seems to be related to the phylogeny of their organism of origin. In order to assess if CEM related enzymes are faster than others, distributions of $k_cat$ values for each studied metabolic context were statistically compared for each of the KEGG kingdoms of life.
 
-#### Animals
+ $Figs. S1.18-23$ show cumulative distributions for enzymes sorted by different metabolic groups for each of the KEGG kingdoms of life. Notably, central carbon and energy metabolism enzymes present higher values, on average, than those in other metabolic contexts. Notably, when focusing on enzymes for Fungi and Bacteria organisms (two well-studied phylogenetic groups) it turns out that all $k_cat$ value distributions for the studied metabolic contexts, differ significantly ($Tables S1.16-17$). 
 
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
-
+<p>
+#### Animals
+</p>
+<p>
 ```{r cumDist_metGroup_animals, fig.cap = "\\label{fig:cumDist_metGroup_animals}Cumulative distributions for Kcat values by metabolic subgroup for Animals", echo=FALSE, warning=FALSE}
 indexes    <- grep(labOrgs[1],dataset[,3])
 df         <- dataset[indexes,]
@@ -644,19 +649,22 @@ xLabel          <- 'Kcat [1/s]'
 x_limits        <- c(0.001,2000)
 multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
+</p>
 
 ```{r pVal_animals_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-#### Plants
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
-
+<p>
+#### Plants
+</p>
+<p>
 ```{r cumDist_metGroup_plants, fig.cap = "\\label{fig:cumDist_metGroup_plants}Cumulative distributions for Kcat values by metabolic subgroup for Plants", echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
@@ -671,19 +679,23 @@ xLabel          <- 'Kcat [1/s]'
 x_limits        <- c(0.001,2000)
 multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
+</p>
 
 ```{r pVal_plants_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-#### Fungi
+
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
-
+<p>
+#### Fungi
+</p>
+<p>
 ```{r cumDist_metGroup_fungi, fig.cap = "\\label{fig:cumDist_metGroup_fungi}Cumulative distributions for Kcat values by metabolic subgroup for Fungi", echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
@@ -698,19 +710,23 @@ xLabel          <- 'Kcat [1/s]'
 x_limits        <- c(0.001,2000)
 multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
+</p>
+
 
 ```{r pVal_fungi_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-#### Protists
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
-
+<p>
+#### Protists
+</p>
+<p>
 ```{r cumDist_metGroup_protists, fig.cap = "\\label{fig:cumDist_metGroup_protists}Cumulative distributions for Kcat values by metabolic subgroup for Protists", echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
@@ -725,19 +741,23 @@ xLabel          <- 'Kcat [1/s]'
 x_limits        <- c(0.001,2000)
 multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
+</p>
 
 ```{r pVal_protists_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
 
-#### Bacteria
+
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
-
+<p>
+#### Bacteria
+</p>
+<p>
 ```{r cumDist_metGroup_bacteria, fig.cap = "\\label{fig:cumDist_metGroup_bacteria}Cumulative distributions for Kcat values by metabolic subgroup for Bacteria", echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
@@ -752,19 +772,23 @@ xLabel          <- 'Kcat [1/s]'
 x_limits        <- c(0.001,2000)
 multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
+</p>
+
 
 ```{r pVal_bacteria_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
  
-#### Archaea
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
-
+<p>
+#### Archaea
+</p>
+<p>
 ```{r cumDist_metGroup_archaea, fig.align = "center", fig.cap = "\\label{fig:cumDist_metGroup_archaea}Cumulative distributions for Kcat values by metabolic subgroup for Archaea",echo=FALSE, warning=FALSE}
 orgCol     <- which(colnames(dataset)=='Organism')
 column     <- which(colnames(dataset)=='metGroups')
@@ -779,10 +803,8 @@ xLabel          <- 'Kcat [1/s]'
 x_limits        <- c(0.001,2000)
 multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metGroup',8)
 ```
-
+</p>
 ```{r pVal_archaea_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
 ``` 
-
-$Figs. S1.18-23$ show cumulative distributions for enzymes sorted by different metabolic groups for each of the KEGG kingdoms of life. Notably, central carbon and energy metabolism enzymes present higher values, on average, than those in other metabolic contexts. Notably, when focusing on enzymes for Fungi and Bacteria organisms (two well-studied phylogenetic groups) it turns out that all $k_cat$ value distributions for the studied metabolic contexts, differ significantly ($Tables S1.16-17$). 
