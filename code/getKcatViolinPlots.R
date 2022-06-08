@@ -12,13 +12,14 @@ if (exists("RStudio.Version")){
   setwd(getSrcDirectory()[1])
 }
 
-dataset <- read.csv(file = '../results/kineticData.txt', sep = '\t', header = TRUE, stringsAsFactors = FALSE)
+dataset <- read.csv(file = '../results/kineticData.txt', sep = '\t', header = FALSE, stringsAsFactors = FALSE, row.names = 'V1')
 #kcats_sce <- kcats_all[grep('saccharomyces cerevisiae',kcats_all[,3]),]
 #kcats_fungi <- kcats_all[grep(';fungi;',kcats_all[,3]),]
 kingdom <- c('animals','plants','protists','fungi','bacteria','archaea')
 
 
 data <- dataset
+colnames(data) <- c('ecnumber','substrate','Organism','Kcat','sd','WC','metGroups')
 
 idxs <- grep('Others',data$metGroups)
 data <- data[-idxs,]
@@ -41,10 +42,13 @@ data$Organism[idxs] <- 'bacteria'
 idxs <- grep('//*//*',data$Organism)
 data <- data[-idxs,]
 pValues <- c()
+
 for (cat in kingdom){
+  print(cat)
   dist1 <- data$Kcat[intersect(grep(cat,data$Organism),grep('CEM',data$metGroups))]
   dist2 <- data$Kcat[intersect(grep(cat,data$Organism),grep('ALM & ISM',data$metGroups))]
   x <- ks.test(dist2,dist1,alternative = "greater")
+  print(as.double(x$p.value[1]))
   pValues <- c(pValues,as.double(x$p.value[1]))
 }
 pValues
