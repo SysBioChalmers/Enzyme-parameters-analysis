@@ -7,7 +7,7 @@ header-includes:
 - \renewcommand{\thetable}{S1.\arabic{table}}
 - \floatplacement{figure}{H}
 - \floatplacement{table}{H}
-date: "March 2021"
+date: "June 2022"
 output:
   pdf_document:
     fig_caption: yes        
@@ -33,6 +33,12 @@ This is a global statistical study of turnover numbers ($k_{cat}$ parameters) fo
 
 ### 1.1 Loading packages
 ```{r warning = FALSE, message = FALSE, results = FALSE}
+options(repos = c(
+  yihui = 'https://yihui.r-universe.dev',
+  CRAN = 'https://cloud.r-project.org'
+))
+
+install.packages('xfun')
 library(tidyr)
 library(dplyr)
 library(plyr)
@@ -44,6 +50,7 @@ library(kableExtra)
 library(ggplot2)
 library(ggrepel)
 library(viridis)
+library(tinytex)
 ```
 ### 1.2 Loading R scripts for this study 
 ```{r warning = FALSE, message = FALSE}
@@ -171,7 +178,7 @@ kable(pathGroups, caption= "KEGG pathways classification used in this study", fo
 ```{r, echo=FALSE, warning=FALSE}
 dataset <- add_MetGroup(dataset,EC_kegg)
 #Generate a txt file with the extended dataset of kinetic parameters
-write.table(dataset, '../results/kineticData.txt', sep = "\t",col.names = TRUE)
+write.table(dataset, '../results/kineticData.txt', sep = "\t",col.names = FALSE)
 ```
 
 # 3. Data analysis
@@ -185,6 +192,8 @@ N_entries     <- plotVariables[[1]]
 spanning      <- as.data.frame(plotVariables[[2]])
 spreading     <- as.data.frame(plotVariables[[3]])
 ```
+
+## Data composition
 
 ### 3.1.1 Data composition per enzyme classes
 
@@ -319,7 +328,6 @@ The dataset is not just heterogeneous regarding its composition by organism king
 
 It is said that evolution  has shaped kinetic parameters in a very specific way, differentiating catalytic activities by metabolic context, phylogenetic origin and substrate specificity. If such specialization exists for a big dataset as this one, then a wide spanning of reported values can be expected.
 
-$k_{cat}$ dispersion per EC number
 ```{r getBarPlot, echo=FALSE}
 ```
 
@@ -338,7 +346,6 @@ However, it is also important to analyze how large is the variance of a given di
 
 This metric allows to explore how wide or narrow a distribution is compared to its median value. A value lower than 1 means that the distribution spanning is higher than its median value (in terms of orders of magnitude).
  
-Normalized $k_{cat}$ dispersion per EC# (orders of magnitude)
 ```{r KcatSpreadCumDist, fig.height = 0.75, fig.width = 1.2, fig.align = "center", fig.cap = "\\label{fig:KcatSpreadCumDist}Kcats spreading per EC number.", echo=FALSE, warning=FALSE}
 xLabel     <- 'Kcats spreading per EC number'
 yLabel     <- 'Cumulative relative frequency'
@@ -355,8 +362,8 @@ This cumulative distribution shows that around 20% of the enzyme classes show ve
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
-Cumulative $k_{cat}$ distributions for the different enzyme families
-```{r cumDist_enzClasses, fig.align = "center", fig.cap = "\\label{fig:cumDist_enzClasses}Cumulative distributions for Kcat values per enzymes family", echo=FALSE, warning=FALSE}
+
+```{r cumDist_enzClasses, fig.align = "center", fig.cap = "\\label{fig:cumDist_enzClasses}Cumulative distributions for Kcat values per enzyme family", echo=FALSE, warning=FALSE}
 yLabel          <- 'Cumulative relative frequency'
 xLabel          <- 'Kcat [1/s]' 
 x_limits        <- c(0.001,2000)
@@ -370,10 +377,10 @@ In order to test if distributions of $k_{cat}$ values differ significantly among
 
 ```{r pVal_ECclasses_dist, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_EC,classes)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
-As expected enzymes catalytic activity distributions differ significantly across enzyme families, it should be noted that enzyme families represent groups of biochemical reactions wich drastically differ in their mechanisms. To dig deeper into the catalytic specialization of different enzyme sub-families, wild cards can be introduced into the dataset EC numbers to obtain the subfamilies with more data entries available.
+As expected, enzyme catalytic activity distributions differ significantly across enzyme families. It should be noted that enzyme families represent groups of biochemical reactions wich drastically differ in their mechanisms. To dig deeper into the catalytic specialization of different enzyme sub-families, wild cards can be introduced into the dataset EC numbers to obtain the subfamilies with more data entries available.
 ```{r add_WildCards, echo=FALSE, warning=FALSE}
 ``` 
 
@@ -421,7 +428,7 @@ multipleDensityPlot(df,xLabel,'Frequency',12,x_Limits,FALSE,labelStrs,colors)
 
 ```{r pValtop1EC_WC2, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_EC_class,classesWC1)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ```
 
 The same can be observed for the top-2 represented enzyme subfamily.
@@ -451,14 +458,36 @@ multipleDensityPlot(df,xLabel,'Frequency',12,x_Limits,FALSE,labelStrs,colors)
 
 ```{r pValtop2EC_WC2, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_EC_class,classesWC2)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ```
 
 It can be seen that kinetic parameters not only differ significantly across general enzyme families (top-level EC numbers), but also across different enzyme subgroups (EC#'s w/ 2 wild-cards) within these families.
 
-### 3.3.2 $k_{cat}$ distributions per organism Kingdoms
+### 3.3.2 $k_{cat}$ distributions per metabolic context
 
-Cumulative $k_{cat}$ distributions for the different organism Kingdoms
+As all $k_{cat}$ entries were assigned a metabolic subgroup, according to the KEGG pathways classification, the effect of metabolic context on $k_{cat}$ values differentiation was also assessed. $Fig. S1.13$ shows that, in general, enzymes in the central carbon and energy metabolism pathways tend to be significantly faster than those involved in amino acids, lipids and secondary metabolism.
+
+```{r multipleDensityPlot_metGroup, echo=FALSE, warning=FALSE}
+```
+
+```{r DistList_to_DataFrame, echo=FALSE, warning=FALSE}
+```
+
+```{r , fig.cap = "\\label{fig:multipleDensityPlot_metGroup}Kcat distributions sorted by metabolic context of enzymes",echo=FALSE, warning=FALSE}
+df     <- DistList_to_DataFrame (list_metGroup,metGroups)
+xLabel <- 'Kcats [1/s]'
+yLabel <- 'Frequency'
+colors <- cividis(4)
+plotName <- paste('../results/superPaths_distributions.png')
+#png(plotName,width = 600, height = 600)
+multipleDensityPlot(df,xLabel,yLabel,12,x_Limits,TRUE,lab_metG,colors) 
+#dev.off()
+```
+
+### 3.3.3 $k_{cat}$ distributions per organism Kingdoms
+
+Each entry of the retrieved $k_{cat}$ values contains information regarding substrate and organism, it is then possible to assign a phylogenetic classification to each entry by retrieving the classification of the organism of origin from the KEGG organisms database. Therefore, comparison of $k_{cat}$ distributions by different taxonomy levels is possible. $Fig. S1.14$ shows $k_{cat}$ cumulative distributions when sorted by organism kingdom, where it is evident that activity values for enzymes in microbial organisms (fungi, bacteria and archaea) tend to be significantly higher than those for other organisms such as animals and plants. 
+
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -482,30 +511,126 @@ multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Ki
 
 ```{r pVal_orgKingdoms_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_org,labOrgs)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
-### 3.3.3 $k_{cat}$ distributions per metabolic pathways groups
-```{r multipleDensityPlot, echo=FALSE, warning=FALSE}
+However, due to the impact of metabolic context on $k_{cat}$ values differentiation ($Fig. S1.13$), this should also be taken into account when studying the role of phylogeny. $Figs. S1.15-20$ show that enzymes in Fungi organisms tend to be significantly faster than those for other organisms across **all** metabolic contexts. Additionally, it was found that enzymes for higher organisms, such as animals, tend to display activity values that are lower, in general, than those for microbial organisms across **all** studied metabolic groups.
+
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
-```{r DistList_to_DataFrame, echo=FALSE, warning=FALSE}
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
 
-```{r , echo=FALSE, warning=FALSE}
-df     <- DistList_to_DataFrame (list_metGroup,metGroups)
-xLabel <- 'Kcats [1/s]'
-yLabel <- 'Frequency'
-colors <- cividis(4)#c('yellow','green','red','grey')
-plotName <- paste('../results/superPaths_distributions.png')
-#png(plotName,width = 600, height = 600)
-multipleDensityPlot(df,xLabel,yLabel,12,x_Limits,TRUE,lab_metG,colors) 
+```{r cumDist_orgKingdoms_CEM, fig.align = "center", fig.cap = "\\label{fig:cumDist_orgKingdoms_CEM}Cumulative distributions for Kcat values in CEM per organism kingdoms", echo=FALSE, warning=FALSE}
+
+indexes    <- grep('CEM',dataset[,7])
+dtset      <- dataset[indexes,]
+
+column     <- which(colnames(dtset)=='Organism')
+output     <- getDistributionsList(dtset,labOrgs,column)
+list_org   <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+labOrgs    <- gsub(';','',labOrgs)
+
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+
+#plotName <- paste('../results/kingdom_distributions.png')
+#png(plotName,width = 900, height = 600)
+
+colPalette <- cividis(length(list_org))
+multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Kingdom',8)
 #dev.off()
+```  
+
+```{r pVal_orgKingdoms_Dists_CEM, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_org,labOrgs)
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
+``` 
+
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_orgKingdoms_ALM, fig.align = "center", fig.cap = "\\label{fig:cumDist_orgKingdoms_ALM}Cumulative distributions for Kcat values in ALM per organism kingdoms", echo=FALSE, warning=FALSE}
+
+indexes    <- grep('ALM',dataset[,7])
+dtset      <- dataset[indexes,]
+
+column     <- which(colnames(dtset)=='Organism')
+output     <- getDistributionsList(dtset,labOrgs,column)
+list_org   <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+labOrgs    <- gsub(';','',labOrgs)
+
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+
+#plotName <- paste('../results/kingdom_distributions.png')
+#png(plotName,width = 900, height = 600)
+
+colPalette <- cividis(length(list_org))
+multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Kingdom',8)
+#dev.off()
+```  
+
+```{r pVal_orgKingdoms_Dists_ALM, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_org,labOrgs)
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
+``` 
+
+```{r multipleCumDist, echo=FALSE, warning=FALSE}
+```
+
+```{r getDistributionsList, echo=FALSE, warning=FALSE}
+```
+
+```{r cumDist_orgKingdoms_ISM, fig.align = "center", fig.cap = "\\label{fig:cumDist_orgKingdoms_ISM}Cumulative distributions for Kcat values in ISM per organism kingdoms", echo=FALSE, warning=FALSE}
+
+indexes    <- grep('ISM',dataset[,7])
+dtset      <- dataset[indexes,]
+
+column     <- which(colnames(dtset)=='Organism')
+output     <- getDistributionsList(dtset,labOrgs,column)
+list_org   <- output[[1]]
+labelStrs  <- output[[2]]
+labelStrs  <- gsub(';','',labelStrs)
+labOrgs    <- gsub(';','',labOrgs)
+
+yLabel          <- 'Cumulative relative frequency'
+xLabel          <- 'Kcat [1/s]' 
+x_limits        <- c(0.001,2000)
+
+#plotName <- paste('../results/kingdom_distributions.png')
+#png(plotName,width = 900, height = 600)
+
+colPalette <- cividis(length(list_org))
+multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Kingdom',8)
+#dev.off()
+```  
+
+```{r pVal_orgKingdoms_Dists_ISM, echo=FALSE, warning=FALSE}
+df <- statTest_distributions(list_org,labOrgs)
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
+``` 
 
 ### 3.3.4 $k_{cat}$ distributions per metabolic pathways groups per organism Kingdoms
 
+It has been shown that, overall, enzymes in central carbon and energy metabolism have been reported to have higher activity values than those in other metabolic contexts ($Fig. S1.13$)). Nonetheless, enzyme activity also seems to be related to the phylogeny of their organism of origin. In order to assess if CEM related enzymes are faster than others, distributions of $k_cat$ values for each studied metabolic context were statistically compared for each of the KEGG kingdoms of life.
+
+ $Figs. S1.18-23$ show cumulative distributions for enzymes sorted by different metabolic groups for each of the KEGG kingdoms of life. Notably, central carbon and energy metabolism enzymes present higher values, on average, than those in other metabolic contexts. Notably, when focusing on enzymes for Fungi and Bacteria organisms (two well-studied phylogenetic groups) it turns out that all $k_cat$ value distributions for the studied metabolic contexts, differ significantly ($Tables S1.16-17$). 
+
+<p>
 #### Animals
+</p>
+<p>
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -528,10 +653,14 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_animals_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
+</p>
 
+<p>
 #### Plants
+</p>
+<p>
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -555,10 +684,14 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_plants_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
+</p>
 
+<p>
 #### Fungi
+</p>
+<p>
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -582,10 +715,14 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_fungi_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
+</p>
 
+<p>
 #### Protists
+</p>
+<p>
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -609,10 +746,14 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_protists_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
+</p>
 
+<p>
 #### Bacteria
+</p>
+<p>
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -636,10 +777,14 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_bacteria_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
- 
+</p> 
+
+<p>
 #### Archaea
+</p>
+<p>
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
@@ -663,6 +808,6 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_archaea_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
-  
+</p>
