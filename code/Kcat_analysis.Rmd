@@ -377,7 +377,7 @@ In order to test if distributions of $k_{cat}$ values differ significantly among
 
 ```{r pVal_ECclasses_dist, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_EC,classes)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
 As expected, enzyme catalytic activity distributions differ significantly across enzyme families. It should be noted that enzyme families represent groups of biochemical reactions wich drastically differ in their mechanisms. To dig deeper into the catalytic specialization of different enzyme sub-families, wild cards can be introduced into the dataset EC numbers to obtain the subfamilies with more data entries available.
@@ -428,7 +428,7 @@ multipleDensityPlot(df,xLabel,'Frequency',12,x_Limits,FALSE,labelStrs,colors)
 
 ```{r pValtop1EC_WC2, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_EC_class,classesWC1)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ```
 
 The same can be observed for the top-2 represented enzyme subfamily.
@@ -458,7 +458,7 @@ multipleDensityPlot(df,xLabel,'Frequency',12,x_Limits,FALSE,labelStrs,colors)
 
 ```{r pValtop2EC_WC2, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_EC_class,classesWC2)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ```
 
 It can be seen that kinetic parameters not only differ significantly across general enzyme families (top-level EC numbers), but also across different enzyme subgroups (EC#'s w/ 2 wild-cards) within these families.
@@ -511,7 +511,7 @@ multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Ki
 
 ```{r pVal_orgKingdoms_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_org,labOrgs)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
 However, due to the impact of metabolic context on $k_{cat}$ values differentiation ($Fig. S1.13$), this should also be taken into account when studying the role of phylogeny. $Figs. S1.15-20$ show that enzymes in Fungi organisms tend to be significantly faster than those for other organisms across **all** metabolic contexts. Additionally, it was found that enzymes for higher organisms, such as animals, tend to display activity values that are lower, in general, than those for microbial organisms across **all** studied metabolic groups.
@@ -548,7 +548,7 @@ multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Ki
 
 ```{r pVal_orgKingdoms_Dists_CEM, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_org,labOrgs)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
@@ -583,7 +583,7 @@ multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Ki
 
 ```{r pVal_orgKingdoms_Dists_ALM, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_org,labOrgs)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
@@ -618,7 +618,7 @@ multipleCumDist <- multipleCumDist(list_org,labelStrs,xLabel,yLabel,x_limits,'Ki
 
 ```{r pVal_orgKingdoms_Dists_ISM, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_org,labOrgs)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
 ### 3.3.4 $k_{cat}$ distributions per metabolic pathways groups per organism Kingdoms
@@ -653,7 +653,7 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_animals_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
@@ -683,7 +683,7 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_plants_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
 
@@ -715,7 +715,7 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_fungi_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
@@ -745,7 +745,7 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_protists_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
 
 
@@ -777,7 +777,7 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 
 ```{r pVal_bacteria_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
  
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
@@ -806,5 +806,5 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 </p>
 ```{r pVal_archaea_Dists, echo=FALSE, warning=FALSE}
 df <- statTest_distributions(list_V,metGroups)
-kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov statistical test", format = 'latex')
+kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
