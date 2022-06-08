@@ -630,13 +630,14 @@ It has been shown that, overall, enzymes in central carbon and energy metabolism
 <p>
 #### Animals
 </p>
+
 <p>
 ```{r multipleCumDist, echo=FALSE, warning=FALSE}
 ```
 
 ```{r getDistributionsList, echo=FALSE, warning=FALSE}
 ```
-
+</p>
 ```{r cumDist_metGroup_animals, fig.cap = "\\label{fig:cumDist_metGroup_animals}Cumulative distributions for Kcat values by metabolic subgroup for Animals", echo=FALSE, warning=FALSE}
 indexes    <- grep(labOrgs[1],dataset[,3])
 df         <- dataset[indexes,]
@@ -655,7 +656,6 @@ multipleCumDist <- multipleCumDist(list_V,labelStrs,xLabel,yLabel,x_limits,'metG
 df <- statTest_distributions(list_V,metGroups)
 kable(df, caption= "p-values under the pairwise Kolmogorov-Smirnov two-tailed statistical test", format = 'latex')
 ``` 
-</p>
 
 <p>
 #### Plants
